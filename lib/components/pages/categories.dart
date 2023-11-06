@@ -30,6 +30,9 @@ class _CategoriesState extends State<Categories> {
         slivers: [
           SliverAppBar(
             backgroundColor: Colors.deepPurple,
+            iconTheme: IconThemeData(
+              color: Colors.white
+            ),
             flexibleSpace: Container(
               padding: const EdgeInsets.all(16.0),
               alignment: Alignment.bottomCenter,
@@ -83,7 +86,7 @@ class _CategoriesState extends State<Categories> {
                             onTap: () => {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => Posts(catid: categoryId),
+                                  builder: (context) => Posts(catid: categoryId.toString()),
                                 ),
                               )
                             },

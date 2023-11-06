@@ -84,7 +84,7 @@ class _PostsState extends State<Posts> {
                             onTap: () => {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => Posts(catid: categoryId),
+                                  builder: (context) => Posts(catid: categoryId.toString()),
                                 ),
                               )
                             },
