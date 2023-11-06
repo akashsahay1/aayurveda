@@ -3,27 +3,25 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../constants/texts.dart';
 import '../../constants/apis.dart';
-import '../pages/post.dart';
 
-class Posts extends StatefulWidget {
-  const Posts({super.key, required this.catid});
-  final String catid;
+class Post extends StatefulWidget {
+  Post({super.key, required this.postId});
+  final String postId;
   @override
-  State<Posts> createState() => _PostsState();
+  State<Post> createState() => _PostState();
 }
 
-class _PostsState extends State<Posts> {
+class _PostState extends State<Post> {
 
-  Future<List<dynamic>> fetchposts() async {
-    final response = await http.get(Uri.parse(postsApi + widget.catid));
-    if(response.statusCode == 200){   
-      final List<dynamic> posts = json.decode(response.body);      
-      return posts;
-    }else{
-      throw Exception('Failed to fetch posts. Status code: ${response.statusCode}');
-    }
+  Future<List<dynamic>> fetchPost() async {
+      final response = await http.get(Uri.parse(categoriesApi));
+      if(response.statusCode == 200){   
+        final List<dynamic> categories = json.decode(response.body);        
+        return categories;
+      }else{
+        throw Exception('Failed to fetch categories. Status code: ${response.statusCode}');
+      }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +29,10 @@ class _PostsState extends State<Posts> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: Colors.amber,
-            iconTheme: IconThemeData(color: Colors.black),
+            backgroundColor: Colors.deepPurple,
+            iconTheme: IconThemeData(
+              color: Colors.white
+            ),
             flexibleSpace: Container(
               padding: const EdgeInsets.all(16.0),
               alignment: Alignment.bottomCenter,
@@ -42,7 +42,7 @@ class _PostsState extends State<Posts> {
                   fontSize: 16.0,
                   fontFamily: 'OpenSans',
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -52,20 +52,19 @@ class _PostsState extends State<Posts> {
             floating: true,
           ),
           FutureBuilder<List<dynamic>>(
-              future: fetchposts(),
+              future: fetchPost(),
               builder:
               (BuildContext context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return SliverToBoxAdapter(
+                  return const SliverToBoxAdapter(
                     child: Center(
-                      heightFactor: 10.0,
                       child: CircularProgressIndicator(),
                     ),
                   );
                 } else if (snapshot.hasError) {
                   return const SliverToBoxAdapter(
                     child: Center(
-                      child: Text("Failed to load posts!"),
+                      child: Text("Failed to load post!"),
                     ),
                   );
                 } else {
@@ -73,34 +72,27 @@ class _PostsState extends State<Posts> {
                     padding: const EdgeInsets.only(top: 7.0, left: 7.0, right: 7.0),
                     sliver: SliverGrid(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
+                        crossAxisCount: 2,
                         childAspectRatio: 2.5,
                         crossAxisSpacing: 7.0,
                         mainAxisSpacing: 7.0,
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (BuildContext context, int index) {
-                          final post = snapshot.data![index];
-                          final postId = post['id'];
-                          final postName = post['title']['rendered'];
+                          final category = snapshot.data![index];
+                          final postId = category['id'];
+                          final categoryName = category['name'];
                           return GestureDetector(
                             onTap: () => {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => Post(postId: postId.toString()),
-                                ),
-                              )
+                              
                             },
                             child: Container(
-                              decoration: BoxDecoration(
-                                color: Color.fromARGB(255, 102, 7, 255),
-                                borderRadius: BorderRadius.circular(15.0)
-                              ),
+                              color: Color.fromARGB(255, 102, 7, 255),
                               padding: const EdgeInsets.all(0.0),
                               margin: const EdgeInsets.all(0.0),
                               child: Center(
                                 child: Text(
-                                  postName,
+                                  categoryName+" "+postId.toString(),
                                   style: const TextStyle(
                                     color: Color.fromARGB(255, 255, 255, 255),
                                     fontSize: 14.0,

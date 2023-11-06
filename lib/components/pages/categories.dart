@@ -29,9 +29,9 @@ class _CategoriesState extends State<Categories> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: Colors.amber,
             iconTheme: IconThemeData(
-              color: Colors.white
+              color: Colors.black
             ),
             flexibleSpace: Container(
               padding: const EdgeInsets.all(16.0),
@@ -42,7 +42,7 @@ class _CategoriesState extends State<Categories> {
                   fontSize: 16.0,
                   fontFamily: 'OpenSans',
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -56,8 +56,10 @@ class _CategoriesState extends State<Categories> {
               builder:
               (BuildContext context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SliverToBoxAdapter(
+                  double height = MediaQuery.of(context).size.height;
+                  return SliverToBoxAdapter(
                     child: Center(
+                      heightFactor: height,
                       child: CircularProgressIndicator(),
                     ),
                   );
@@ -73,7 +75,7 @@ class _CategoriesState extends State<Categories> {
                     sliver: SliverGrid(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 2.5,
+                        childAspectRatio: 1.2,
                         crossAxisSpacing: 7.0,
                         mainAxisSpacing: 7.0,
                       ),
@@ -91,12 +93,19 @@ class _CategoriesState extends State<Categories> {
                               )
                             },
                             child: Container(
-                              color: Color.fromARGB(255, 102, 7, 255),
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage('assets/images/home-banner.jpg'),
+                                  fit: BoxFit.cover
+                                ),
+                                color: Colors.black.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(15.0)
+                              ),
                               padding: const EdgeInsets.all(0.0),
                               margin: const EdgeInsets.all(0.0),
                               child: Center(
                                 child: Text(
-                                  categoryName+" "+categoryId.toString(),
+                                  categoryName,
                                   style: const TextStyle(
                                     color: Color.fromARGB(255, 255, 255, 255),
                                     fontSize: 14.0,

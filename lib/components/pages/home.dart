@@ -9,12 +9,6 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: const Icon(Icons.bolt_rounded, color: Colors.white),
-        title: const Text(AppStrings.appTitle, style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500, color: Colors.white)),
-        backgroundColor: Colors.deepPurple,
-        centerTitle: true,
-      ),
       body: Container(
         color: Colors.amber,
         width: double.infinity,
