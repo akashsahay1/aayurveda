@@ -56,10 +56,8 @@ class _CategoriesState extends State<Categories> {
               builder:
               (BuildContext context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  double height = MediaQuery.of(context).size.height;
                   return SliverToBoxAdapter(
                     child: Center(
-                      heightFactor: height,
                       child: CircularProgressIndicator(),
                     ),
                   );
@@ -84,6 +82,7 @@ class _CategoriesState extends State<Categories> {
                           final category = snapshot.data![index];
                           final categoryId = category['id'];
                           final categoryName = category['name'];
+                          final categoryImage = category['category_image_url'];
                           return GestureDetector(
                             onTap: () => {
                               Navigator.of(context).push(
@@ -95,7 +94,7 @@ class _CategoriesState extends State<Categories> {
                             child: Container(
                               decoration: BoxDecoration(
                                 image: DecorationImage(
-                                  image: AssetImage('assets/images/home-banner.jpg'),
+                                  image: NetworkImage(categoryImage),
                                   fit: BoxFit.cover
                                 ),
                                 color: Colors.black.withOpacity(0.5),
@@ -111,7 +110,7 @@ class _CategoriesState extends State<Categories> {
                                     fontSize: 14.0,
                                     fontFamily: 'OpenSans',
                                     fontWeight: FontWeight.bold,
-                                  ),
+                                  ), 
                                   textAlign: TextAlign.center,
                                 ),
                               ),
