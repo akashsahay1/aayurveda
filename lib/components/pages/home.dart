@@ -1,124 +1,77 @@
 import 'package:flutter/material.dart';
 import '../../constants/texts.dart';
+import '../pages/categories.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
-  final String title;
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
+class Home extends StatelessWidget {
+  const Home({super.key});
 
-class _HomePageState extends State<HomePage> {
-  Future<List<String>> fetchCategories() async {
-      //final response = await http.get(Uri.parse(categoriesApi));
-      //if (response.statusCode == 200) {        
-        //final List<dynamic> data = json.decode(response.body);
-        //final List<String> categories = data.map((category) => category['name'] as String).toList();
-        final List<String> categories = [
-          AppCategories.categories["cat1"]!,
-          AppCategories.categories["cat2"]!,
-          AppCategories.categories["cat3"]!,
-          AppCategories.categories["cat4"]!,
-          AppCategories.categories["cat5"]!,
-          AppCategories.categories["cat6"]!,
-          AppCategories.categories["cat7"]!,
-          AppCategories.categories["cat8"]!,
-          AppCategories.categories["cat9"]!,
-          AppCategories.categories["cat10"]!,
-          AppCategories.categories["cat11"]!,
-          AppCategories.categories["cat12"]!,
-        ];
-
-        return categories;
-      //} else {
-        //throw Exception('Failed to fetch categories. Status code: ${response.statusCode}');
-      //}
-  }
-
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: Colors.deepPurple,
-            flexibleSpace: Container(
-              padding: const EdgeInsets.all(16.0),
-              alignment: Alignment.bottomCenter,
-              child: const Text(
-                AppStrings.appTitle,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontFamily: 'OpenSans',
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            expandedHeight: 50.0,
-            pinned: true,
-            floating: true,
-          ),
-          FutureBuilder<List<String>>(
-              future: fetchCategories(),
-              builder:
-                (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SliverToBoxAdapter(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                } else if (snapshot.hasError) {
-                  return const SliverToBoxAdapter(
-                    child: Center(
-                      child: Text('Failed to load categories'),
-                    ),
-                  );
-                } else {
-                  return SliverPadding(
-                    padding: const EdgeInsets.only(top: 7.0, left: 7.0, right: 7.0),
-                    sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 1.5,
-                        crossAxisSpacing: 7.0,
-                        mainAxisSpacing: 7.0,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                          final category = snapshot.data![index];
-                          return Padding(
-                            padding: const EdgeInsets.all(0.0),
-                            child: Container(
-                              color: Color.fromARGB(255, 255, 7, 222),
-                              padding: const EdgeInsets.all(0.0),
-                              margin: const EdgeInsets.all(0.0),
-                              child: Center(
-                                child: Text(
-                                  category,
-                                  style: const TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255),
-                                    fontSize: 14.0,
-                                    fontFamily: 'OpenSans',
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                        childCount: snapshot.data!.length,
-                      ),
-                    ),
-                  );
-                }
-              },
-            ),
-        ],
+      appBar: AppBar(
+        leading: const Icon(Icons.bolt_rounded, color: Colors.white),
+        title: const Text(AppStrings.appTitle, style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500, color: Colors.white)),
+        backgroundColor: Colors.deepPurple,
+        centerTitle: true,
       ),
+      body: Container(
+        color: Colors.amber,
+        width: double.infinity,
+        height: double.infinity,
+        child: SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset("assets/images/logo.png", width: 200.0, height: 200.0, fit: BoxFit.contain),
+                const SizedBox(height: 15.0,),
+                const Text(
+                  AppStrings.welcomeMessage, 
+                  style: TextStyle(
+                    fontSize: 16.0, 
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'OpenSans',
+                    color: Colors.black
+                  ),
+                ),
+                const SizedBox(height: 15.0,),
+                ElevatedButton(
+                  onPressed: (){
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => Categories(title: 'Aayurvedic Categories'),
+                      ),
+                    );
+                  },
+                  style: const ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll(Colors.deepPurple),
+                    foregroundColor: MaterialStatePropertyAll(Colors.white),
+                    shape: MaterialStatePropertyAll<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(3.0)),
+                        side: BorderSide(color: Colors.deepPurple)
+                      )
+                    )  
+                  ), 
+                  child: const Text(
+                    "Start Now", 
+                    style: TextStyle(
+                      color:Colors.white, 
+                      fontFamily: 'OpenSans', 
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 1.0
+                    )
+                  ),
+                )                  
+              ],
+            ),
+          ),
+        ),
+      ),
+      backgroundColor: Colors.amber,
     );
   }
 }
