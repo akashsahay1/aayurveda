@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../constants/texts.dart';
 import '../../constants/apis.dart';
+import '../common/appbar.dart';
 
 class Post extends StatefulWidget {
-  Post({super.key, required this.postId});
+  Post({super.key, required this.postId, required this.pagetitle});
   final String postId;
+  final String pagetitle;
   @override
   State<Post> createState() => _PostState();
 }
@@ -28,29 +29,7 @@ class _PostState extends State<Post> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            backgroundColor: Colors.deepPurple,
-            iconTheme: IconThemeData(
-              color: Colors.white
-            ),
-            flexibleSpace: Container(
-              padding: const EdgeInsets.all(16.0),
-              alignment: Alignment.bottomCenter,
-              child: const Text(
-                AppStrings.appTitle,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontFamily: 'OpenSans',
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            expandedHeight: 50.0,
-            pinned: true,
-            floating: true,
-          ),
+          Appbar(pagetitle: widget.pagetitle),
           FutureBuilder<List<dynamic>>(
               future: fetchPost(),
               builder:

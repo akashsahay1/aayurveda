@@ -1,4 +1,4 @@
-name: ayurveda
+name: Ayurveda
 description: A new Flutter project.
 publish_to: 'none' 
 
@@ -13,6 +13,7 @@ dependencies:
 
   cupertino_icons: ^1.0.2
   http: ^1.1.0
+  cached_network_image: ^3.3.0
 
 dev_dependencies:
   flutter_test:

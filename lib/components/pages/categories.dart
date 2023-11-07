@@ -4,11 +4,12 @@ import 'dart:convert';
 import '../../constants/texts.dart';
 import '../../constants/apis.dart';
 import '../../components/pages/posts.dart';
+import '../../components/common/appbar.dart';
 
 class Categories extends StatefulWidget {
   const Categories({super.key, required this.title});
   final String title;
-  @override
+  @override 
   State<Categories> createState() => _CategoriesState();
 }
 
@@ -28,29 +29,7 @@ class _CategoriesState extends State<Categories> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            backgroundColor: Colors.amber,
-            iconTheme: IconThemeData(
-              color: Colors.black
-            ),
-            flexibleSpace: Container(
-              padding: const EdgeInsets.all(16.0),
-              alignment: Alignment.bottomCenter,
-              child: const Text(
-                AppStrings.appTitle,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontFamily: 'OpenSans',
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            expandedHeight: 50.0,
-            pinned: true,
-            floating: true,
-          ),
+          Appbar(pagetitle: AppStrings.appTitle),
           FutureBuilder<List<dynamic>>(
               future: fetchCategories(),
               builder:
@@ -58,7 +37,20 @@ class _CategoriesState extends State<Categories> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return SliverToBoxAdapter(
                     child: Center(
-                      child: CircularProgressIndicator(),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 60.0),
+                          CircularProgressIndicator(),
+                          SizedBox(height: 10.0),
+                          Text(
+                            "Loading categories...", 
+                            style: TextStyle(
+                              color: Colors.black
+                            ),
+                            textAlign: TextAlign.center,
+                          )
+                        ],
+                      ),
                     ),
                   );
                 } else if (snapshot.hasError) {
@@ -69,7 +61,7 @@ class _CategoriesState extends State<Categories> {
                   );
                 } else {
                   return SliverPadding(
-                    padding: const EdgeInsets.only(top: 7.0, left: 7.0, right: 7.0),
+                    padding: const EdgeInsets.only(top: 7.0, left: 7.0, right: 7.0, bottom: 7.0),
                     sliver: SliverGrid(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
@@ -83,11 +75,11 @@ class _CategoriesState extends State<Categories> {
                           final categoryId = category['id'];
                           final categoryName = category['name'];
                           final categoryImage = category['category_image_url'];
-                          return GestureDetector(
+                          return InkWell(
                             onTap: () => {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => Posts(catid: categoryId.toString()),
+                                  builder: (context) => Posts(catid: categoryId.toString(), catname: categoryName),
                                 ),
                               )
                             },
@@ -98,20 +90,30 @@ class _CategoriesState extends State<Categories> {
                                   fit: BoxFit.cover
                                 ),
                                 color: Colors.black.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(15.0)
+                                borderRadius: BorderRadius.circular(5.0)
                               ),
                               padding: const EdgeInsets.all(0.0),
                               margin: const EdgeInsets.all(0.0),
                               child: Center(
-                                child: Text(
-                                  categoryName,
-                                  style: const TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255),
-                                    fontSize: 14.0,
-                                    fontFamily: 'OpenSans',
-                                    fontWeight: FontWeight.bold,
-                                  ), 
-                                  textAlign: TextAlign.center,
+                                child: Container(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(5.0)
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      categoryName,
+                                      style: const TextStyle(
+                                        color: Color.fromARGB(255, 255, 255, 255),
+                                        fontSize: 14.0,
+                                        fontFamily: 'OpenSans',
+                                        fontWeight: FontWeight.bold,
+                                      ), 
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  )
                                 ),
                               ),
                             )
