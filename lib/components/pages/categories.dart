@@ -40,7 +40,7 @@ class _CategoriesState extends State<Categories> {
                       child: Column(
                         children: [
                           SizedBox(height: 60.0),
-                          CircularProgressIndicator(),
+                          CircularProgressIndicator(color: Colors.deepPurple),
                           SizedBox(height: 10.0),
                           Text(
                             "Loading categories...", 
@@ -65,7 +65,7 @@ class _CategoriesState extends State<Categories> {
                     sliver: SliverGrid(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 1.2,
+                        childAspectRatio: 1.8,
                         crossAxisSpacing: 7.0,
                         mainAxisSpacing: 7.0,
                       ),

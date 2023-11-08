@@ -42,7 +42,7 @@ class _PostsState extends State<Posts> {
                       child: Column(
                         children: [
                           SizedBox(height: 60.0),
-                          CircularProgressIndicator(),
+                          CircularProgressIndicator(color: Colors.deepPurple),
                           SizedBox(height: 10.0),
                           Text(
                             "Loading posts...", 
@@ -68,7 +68,7 @@ class _PostsState extends State<Posts> {
                       sliver: SliverGrid(
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 1,
-                          childAspectRatio: 2.5,
+                          childAspectRatio: 1.3,
                           crossAxisSpacing: 7.0,
                           mainAxisSpacing: 7.0,
                         ),

@@ -1,7 +1,7 @@
 class AppStrings {
-  static const String appTitle = "Ayurvedic Medicines";
+  static const String appTitle = "Ayurveda";
   static const String catTitle = "Categories";
-  static const String welcomeMessage = 'Welcome to Ayurvedic Medicines';
+  static const String welcomeMessage = 'Welcome to Ayurveda';
   static const String buttonText = 'Click Me';
   static const String errorText = 'An error occurred';
   // Add more string constants as needed
