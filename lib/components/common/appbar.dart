@@ -26,7 +26,9 @@ class _AppbarState extends State<Appbar> {
           ),
           textAlign: TextAlign.center,
         ),
-      )
+      ),
+      floating: true,
+      pinned: true,
     );
   }
 }

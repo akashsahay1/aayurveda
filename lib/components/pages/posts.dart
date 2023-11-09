@@ -68,7 +68,7 @@ class _PostsState extends State<Posts> {
                       sliver: SliverGrid(
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 1,
-                          childAspectRatio: 1.3,
+                          childAspectRatio: 2.0,
                           crossAxisSpacing: 7.0,
                           mainAxisSpacing: 7.0,
                         ),
@@ -92,7 +92,7 @@ class _PostsState extends State<Posts> {
                                     image: NetworkImage(postThumbnail), 
                                     fit: BoxFit.cover
                                   ),
-                                  borderRadius: BorderRadius.circular(15.0)
+                                  borderRadius: BorderRadius.circular(5.0)
                                 ),
                                 padding: const EdgeInsets.all(0.0),
                                 margin: const EdgeInsets.all(0.0),

@@ -15,9 +15,10 @@ class Categories extends StatefulWidget {
 
 class _CategoriesState extends State<Categories> {
   Future<List<dynamic>> fetchCategories() async {
-      final response = await http.get(Uri.parse(categoriesApi));
+      final String childcatsapiurl = childcategoriesApi+"13";
+      final response = await http.get(Uri.parse(childcatsapiurl));
       if(response.statusCode == 200){   
-        final List<dynamic> categories = json.decode(response.body);        
+        final List<dynamic> categories = json.decode(response.body);             
         return categories;
       }else{
         throw Exception('Failed to fetch categories. Status code: ${response.statusCode}');
