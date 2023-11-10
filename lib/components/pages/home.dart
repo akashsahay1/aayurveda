@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/texts.dart';
 import '../pages/categories.dart';
-import '../pages/contactd.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -37,7 +36,7 @@ class Home extends StatelessWidget {
                   onPressed: (){
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => Categories(title: 'Aayurvedic Categories'),
+                        builder: (context) => Categories(),
                       ),
                     );
                   },
@@ -60,36 +59,7 @@ class Home extends StatelessWidget {
                       letterSpacing: 1.0
                     )
                   ),
-                ),
-                const SizedBox(height: 15.0),
-                 ElevatedButton(
-                  onPressed: (){
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const Contactd(),
-                      ),
-                    );
-                  },
-                  style: const ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(Colors.deepPurple),
-                    foregroundColor: MaterialStatePropertyAll(Colors.white),
-                    shape: MaterialStatePropertyAll<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(3.0)),
-                        side: BorderSide(color: Colors.deepPurple)
-                      )
-                    )  
-                  ), 
-                  child: const Text(
-                    "Go to contact", 
-                    style: TextStyle(
-                      color:Colors.white, 
-                      fontFamily: 'OpenSans', 
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 1.0
-                    )
-                  ),
-                ),               
+                )               
               ],
             ),
           ),
