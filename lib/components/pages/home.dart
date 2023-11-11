@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/texts.dart';
-import '../pages/categories.dart';
+import '../common/layout.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -36,7 +36,7 @@ class Home extends StatelessWidget {
                   onPressed: (){
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => Categories(),
+                        builder: (context) => Layout(),
                       ),
                     );
                   },
@@ -51,7 +51,7 @@ class Home extends StatelessWidget {
                     )  
                   ), 
                   child: const Text(
-                    "Start Now", 
+                    "Get Started", 
                     style: TextStyle(
                       color:Colors.white, 
                       fontFamily: 'OpenSans', 

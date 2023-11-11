@@ -75,14 +75,14 @@ class _PostsState extends State<Posts> {
                         delegate: SliverChildBuilderDelegate(
                           (BuildContext context, int index) {
                             final post = snapshot.data![index];
-                            final postId = post['id'];
-                            final postName = post['title']['rendered'];
+                            final postid = post['id'];
+                            final posttitle = post['title']['rendered'];
                             final postThumbnail = post['featured_image_url'];
                             return InkWell(
                               onTap: () => {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => Post(postId: postId.toString(), pagetitle: postName),
+                                    builder: (context) => Post(postid: postid, posttitle: posttitle),
                                   ),
                                 )
                               },
@@ -106,7 +106,7 @@ class _PostsState extends State<Posts> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        postName,
+                                        posttitle,
                                         style: const TextStyle(
                                           color: Color.fromARGB(255, 255, 255, 255),
                                           fontSize: 14.0,
