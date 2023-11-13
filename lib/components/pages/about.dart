@@ -15,7 +15,7 @@ class About extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Welcome to Aayurveda', 
+                'About Aayurveda', 
                 style: TextStyle(
                   color: Colors.white, 
                   fontSize: 30.0,

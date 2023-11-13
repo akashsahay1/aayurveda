@@ -41,10 +41,7 @@ class HorizontalPosts extends StatelessWidget {
                 onTap: () => {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => Post(
-                        postid: postid,
-                        posttitle: posttitle,
-                      ),
+                      builder: (context) => Post(postid: postid),
                     ),
                   )
                 },
@@ -99,7 +96,7 @@ class HorizontalPosts extends StatelessWidget {
             },
           )
         ),
-        SizedBox(height: 30.0,),
+        SizedBox(height: 30.0,), 
       ]
     );
   }
