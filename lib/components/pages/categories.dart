@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../constants/apis.dart';
 import '../common/horizontalposts.dart';
+import '../common/appbar.dart';
+import '../common/bottombar.dart';
 
 class Categories extends StatefulWidget {
   const Categories({super.key});
@@ -33,59 +35,63 @@ class _CategoriesState extends State<Categories> {
       }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          children: [
-            FutureBuilder<Map<String, List<dynamic>>>(
-              future: fetchPosts(),
-              builder: (BuildContext context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Column(
-                    children: [
-                      Container(
-                        height: 400.0,
-                        alignment: Alignment.center,
-                        child: CircularProgressIndicator(color: const Color.fromARGB(255, 222, 205, 252)),
-                      )
-                    ]
-                  );
-                } else if (snapshot.hasError) {
-                  return Container(
-                    height: 400.0,
-                    alignment: Alignment.center,
-                    child: Text("Error loading posts"),
-                  );                    
-                } else {
-                  Map<String, List>? categorizedPosts = snapshot.data;
-                  if(categorizedPosts == null){
-                    return Text("No posts");
+    return Scaffold(
+      appBar: Appbar(title: 'Categories'),
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              FutureBuilder<Map<String, List<dynamic>>>(
+                future: fetchPosts(),
+                builder: (BuildContext context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Column(
+                      children: [
+                        Container(
+                          height: 400.0,
+                          alignment: Alignment.center,
+                          child: CircularProgressIndicator(color: const Color.fromARGB(255, 222, 205, 252)),
+                        )
+                      ]
+                    );
+                  } else if (snapshot.hasError) {
+                    return Container(
+                      height: 400.0,
+                      alignment: Alignment.center,
+                      child: Text("Error loading posts"),
+                    );                    
+                  } else {
+                    Map<String, List>? categorizedPosts = snapshot.data;
+                    if(categorizedPosts == null){
+                      return Text("No posts");
+                    }
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Padding(
+                        padding: EdgeInsets.all(15.0),
+                        child: Column(
+                          children: [
+                            HorizontalPosts('Ayurvedic Medicines', categorizedPosts['category_3']),
+                            HorizontalPosts('Beauty Tips', categorizedPosts['category_9']),
+                            HorizontalPosts('Dry Fruits', categorizedPosts['category_2']),
+                            HorizontalPosts('Fit Daily Rutines', categorizedPosts['category_6']),
+                            HorizontalPosts('Fruits', categorizedPosts['category_7']),                          
+                          ],
+                        )
+                      ),
+                    );
                   }
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Padding(
-                      padding: EdgeInsets.all(15.0),
-                      child: Column(
-                        children: [
-                          HorizontalPosts('Ayurvedic Medicines', categorizedPosts['category_3']),
-                          HorizontalPosts('Beauty Tips', categorizedPosts['category_9']),
-                          HorizontalPosts('Dry Fruits', categorizedPosts['category_2']),
-                          HorizontalPosts('Fit Daily Rutines', categorizedPosts['category_6']),
-                          HorizontalPosts('Fruits', categorizedPosts['category_7']),                          
-                        ],
-                      )
-                    ),
-                  );
-                }
-              },
-            )              
-          ]
+                },
+              )              
+            ]
+          )
         )
-      )
+      ),
+      bottomNavigationBar: Bottombar(currentIndex: 0),
     );
   }
 }

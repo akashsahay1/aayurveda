@@ -42,10 +42,7 @@ static const List<String> _appBarTitles = <String>[
         foregroundColor: Colors.black,
       ),
       backgroundColor: Colors.black,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _widgetOptions,
-      ),
+      body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.amber,
         items: <BottomNavigationBarItem>[

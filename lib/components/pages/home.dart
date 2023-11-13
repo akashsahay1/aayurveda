@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/texts.dart';
-import '../common/layout.dart';
+import '../pages/categories.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -36,7 +36,7 @@ class Home extends StatelessWidget {
                   onPressed: (){
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => Layout(),
+                        builder: (context) => Categories(),
                       ),
                     );
                   },

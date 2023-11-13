@@ -17,6 +17,7 @@ dependencies:
   cached_network_image: ^3.3.0
   flutter_native_splash: ^2.3.5
   launcher_name: ^1.0.2
+  intl: ^0.18.1
 
 launcher_name:
   default: "Aayurveda"  

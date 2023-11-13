@@ -41,7 +41,7 @@ class HorizontalPosts extends StatelessWidget {
                 onTap: () => {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => Post(postid: postid),
+                      builder: (context) => Post(postid: postid, posttitle:posttitle),
                     ),
                   )
                 },
