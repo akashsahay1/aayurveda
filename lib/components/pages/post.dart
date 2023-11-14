@@ -51,7 +51,7 @@ class _PostState extends State<Post> {
                       height: 300,
                       width: double.infinity,
                       child: Center(
-                        child: CircularProgressIndicator()
+                        child: CircularProgressIndicator(color:Colors.amber)
                       )
                     );
                   } else if (snapshot.hasError) {
@@ -71,7 +71,7 @@ class _PostState extends State<Post> {
                                 width: double.infinity,
                                 height: 260.0,
                                 placeholder: (context, url) => Center(
-                                  child: CircularProgressIndicator(value: 10.0),
+                                  child: CircularProgressIndicator(color: Colors.amber),
                                 ),
                                 errorWidget: (context, url, error) => Icon(Icons.error),
                               ),

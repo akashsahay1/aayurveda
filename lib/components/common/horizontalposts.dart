@@ -62,7 +62,7 @@ class HorizontalPosts extends StatelessWidget {
                           width: 150.0,
                           height: 190.0,
                           placeholder: (context, url) => Center(
-                            child: CircularProgressIndicator(value: 10.0),
+                            child: CircularProgressIndicator(color: const Color.fromARGB(255, 222, 205, 252)),
                           ),
                           errorWidget: (context, url, error) => Icon(Icons.error),
                         ),

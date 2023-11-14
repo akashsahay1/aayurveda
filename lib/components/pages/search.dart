@@ -62,7 +62,7 @@ class _SearchState extends State<Search> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 20.0, left: 15.0, right: 15.0, bottom: 0.0),
+            padding: const EdgeInsets.only(top: 25.0, left: 15.0, right: 15.0, bottom: 0.0),
             child: TextField(
               controller: _searchController,
               style: TextStyle(color: Colors.white),
@@ -70,8 +70,7 @@ class _SearchState extends State<Search> {
                 hintText: "Search",
                 suffixIcon: IconButton(
                   onPressed: () => setState(() {
-                    _searchController.clear();
-                    _searchResults.clear();
+                    _search();
                   }),
                   icon: Icon(Icons.search),
                 ),
@@ -81,15 +80,15 @@ class _SearchState extends State<Search> {
                   borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
-              onChanged: (_) => _search(),
               onSubmitted: (_) => _search(),
             ),
           ),
           Expanded(
-            child: ListView.builder(
+            child: ListView.separated(
+              separatorBuilder: (context, index) => SizedBox(height: 10.0),
               physics: ClampingScrollPhysics(),
               padding: EdgeInsets.all(15.0),
-              itemCount: _searchResults.length + 1,
+              itemCount: _searchResults.length,
               itemBuilder: (context, index) {
                 if (index < _searchResults.length) {
                   final post = _searchResults[index];
@@ -144,8 +143,23 @@ class _SearchState extends State<Search> {
                     ),
                   );
                 } else {
-                  // You can return a loading indicator or an empty container for additional items
-                  return Container();
+                  if(_searchResults.length == 0){
+                    return Container(
+                      height: 50,
+                      width: 50,
+                      child: Center(
+                        child: Text("Search for the articles", style: TextStyle(color: Colors.white, fontSize: 20.0)),
+                      ),
+                    );
+                  }else{
+                    return Container(
+                      height: 50,
+                      width: 50,
+                      child: Center(
+                        child: Text("", style: TextStyle(color: Colors.white, fontSize: 20.0)),
+                      ),
+                    );
+                  }
                 }
               },
             ),
