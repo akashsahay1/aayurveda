@@ -26,7 +26,7 @@ class Search extends StatefulWidget {
 class _SearchState extends State<Search> {
 
   Future<List<WordPressPost>> searchPosts(String query) async {
-    final String searctApiUrl = searchApi + query.toString();
+    final String searctApiUrl = searchApi + query.toString() + '&per_page=50';
     final response = await http.get(Uri.parse(searctApiUrl));
 
     if (response.statusCode == 200) {
@@ -48,6 +48,9 @@ class _SearchState extends State<Search> {
   void _search() async {
     final query = _searchController.text;
     final results = await this.searchPosts(query);
+
+    print(results.length);
+
     setState(() {
       _searchResults = results;
     });
@@ -115,7 +118,7 @@ class _SearchState extends State<Search> {
                         borderRadius: BorderRadius.circular(10.0), // Set the border radius here
                       ),
                       child: Container(
-                        height: 120.0,
+                        height: 100.0,
                         width: double.infinity,
                         padding: EdgeInsets.only(left: 0.0, right: 5.0),
                         child: Row(
@@ -123,8 +126,8 @@ class _SearchState extends State<Search> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Container(
-                              height: 120.0,
-                              width: 120.0,
+                              height: 100.0,
+                              width: 100.0,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.only(topLeft: Radius.circular(10.0), bottomLeft: Radius.circular(10.0)),
                                 image: DecorationImage(
