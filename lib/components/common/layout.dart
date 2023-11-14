@@ -32,7 +32,6 @@ static const List<String> _appBarTitles = <String>[
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

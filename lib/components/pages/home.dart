@@ -51,7 +51,7 @@ class Home extends StatelessWidget {
                     )  
                   ), 
                   child: const Text(
-                    "Get Started", 
+                    AppStrings.btngetStarted, 
                     style: TextStyle(
                       color:Colors.white, 
                       fontFamily: 'OpenSans', 

@@ -34,6 +34,7 @@ flutter_native_splash:
   color: "#FCA608"
   image: assets/images/logo.png
   android_12:
+    color: "#FCA608"
     image: assets/images/logo.png
 
 flutter_launcher_icons:

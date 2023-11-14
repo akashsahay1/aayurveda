@@ -48,9 +48,6 @@ class _SearchState extends State<Search> {
   void _search() async {
     final query = _searchController.text;
     final results = await this.searchPosts(query);
-
-    print(results.length);
-
     setState(() {
       _searchResults = results;
     });
@@ -61,61 +58,54 @@ class _SearchState extends State<Search> {
     return Scaffold(
       appBar: Appbar(title: 'Search'),
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(15.0),
-          scrollDirection: Axis.vertical,
-          child: Column(
-            children: [
-              SizedBox(
-                height: 15.0,
-              ),
-              TextField(
-                controller: _searchController,
-                style: TextStyle(
-                  color: Colors.white,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0, left: 15.0, right: 15.0, bottom: 0.0),
+            child: TextField(
+              controller: _searchController,
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: "Search",
+                suffixIcon: IconButton(
+                  onPressed: () => setState(() {
+                    _searchController.clear();
+                    _searchResults.clear();
+                  }),
+                  icon: Icon(Icons.search),
                 ),
-                decoration: InputDecoration(
-                  hintText: "Search",
-                  suffixIcon: IconButton(
-                    onPressed: () => {
-                      setState(() {
-                        _searchController.clear();
-                        _searchResults.clear();
-                      })
-                    }, 
-                    icon: Icon(Icons.search)
-                  ), 
-                  hintStyle: TextStyle(color: Colors.white38),
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
+                hintStyle: TextStyle(color: Colors.white38),
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
-                onSubmitted: (_) => _search(),
               ),
-              SizedBox(height: 10),
-              ListView.builder(
-                padding: EdgeInsets.all(0.0),
-                shrinkWrap: true,
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
+              onChanged: (_) => _search(),
+              onSubmitted: (_) => _search(),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              physics: ClampingScrollPhysics(),
+              padding: EdgeInsets.all(15.0),
+              itemCount: _searchResults.length + 1,
+              itemBuilder: (context, index) {
+                if (index < _searchResults.length) {
                   final post = _searchResults[index];
                   final postid = post.id;
                   final posttitle = post.title;
                   final formattedDate = DateFormat('d-M-y h:mm a').format(post.date);
                   return InkWell(
-                    onTap: () => {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => Post(postid: postid.toInt(), posttitle:posttitle),
-                        ),
-                      )
-                    },
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => Post(postid: postid.toInt(), posttitle: posttitle),
+                      ),
+                    ),
                     child: Card(
                       color: Colors.amber,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0), // Set the border radius here
+                        borderRadius: BorderRadius.circular(10.0),
                       ),
                       child: Container(
                         height: 100.0,
@@ -132,34 +122,35 @@ class _SearchState extends State<Search> {
                                 borderRadius: BorderRadius.only(topLeft: Radius.circular(10.0), bottomLeft: Radius.circular(10.0)),
                                 image: DecorationImage(
                                   image: NetworkImage(post.thumbnailUrl),
-                                  fit: BoxFit.cover
+                                  fit: BoxFit.cover,
                                 ),
-                  
                               ),
                             ),
-                            SizedBox(width: 15.0,),
+                            SizedBox(width: 15.0),
                             Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               mainAxisSize: MainAxisSize.max,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(height: 15.0,),
-                                Text(post.title, style: TextStyle(fontSize: 20.0),),
-                                SizedBox(height: 5.0,),
-                                Text(formattedDate, style: TextStyle(fontSize: 16.0),)
+                                SizedBox(height: 15.0),
+                                Text(post.title, style: TextStyle(fontSize: 20.0)),
+                                SizedBox(height: 5.0),
+                                Text(formattedDate, style: TextStyle(fontSize: 16.0)),
                               ],
-                            )
+                            ),
                           ],
                         ),
-                      )
+                      ),
                     ),
                   );
-                },
-              ),             
-              SizedBox(height: 10),
-            ]
-          )
-        )
+                } else {
+                  // You can return a loading indicator or an empty container for additional items
+                  return Container();
+                }
+              },
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: Bottombar(currentIndex: 1),
     );
