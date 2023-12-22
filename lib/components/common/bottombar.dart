@@ -10,43 +10,40 @@ class Bottombar extends StatefulWidget {
 
   @override
   State<Bottombar> createState() => _BottombarState(currentindex: currentIndex);
-
 }
 
 class _BottombarState extends State<Bottombar> {
-
   int currentindex;
 
   _BottombarState({required this.currentindex});
 
   @override
   Widget build(BuildContext context) {
-
-    onItemSelected (index) {
-      if(index == 0){
+    onItemSelected(index) {
+      if (index == 0) {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => Categories(),
           ),
-        );      
+        );
       }
-      if(index == 1){
+      if (index == 1) {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => Search(),
           ),
-        );      
+        );
       }
-      if(index == 2){
+      if (index == 2) {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => About(),
           ),
-        );      
+        );
       }
     }
 
-    if(currentindex == -1){
+    if (currentindex == -1) {
       setState(() {
         currentindex = 0;
       });
