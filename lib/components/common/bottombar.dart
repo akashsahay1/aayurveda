@@ -22,29 +22,29 @@ class _BottombarState extends State<Bottombar> {
     currentindex = widget.currentIndex;
   }
 
-  void onItemSelected(index) {
+  void onItemSelected(int index) {
+    setState(() {
+      currentindex = index;
+    });
     if (index == 0) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const Categories(),
         ),
       );
-    }
-    if (index == 1) {
+    } else if (index == 1) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const Search(),
         ),
       );
-    }
-    if (index == 2) {
+    } else if (index == 2) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const About(),
         ),
       );
-    }
-    if (index == 3) {
+    } else if (index == 3) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const Login(),
@@ -56,7 +56,10 @@ class _BottombarState extends State<Bottombar> {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      backgroundColor: Colors.amber,
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: const Color(0xfff7770f),
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
@@ -71,12 +74,13 @@ class _BottombarState extends State<Bottombar> {
           label: 'About',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.people),
-          label: 'User',
+          icon: Icon(Icons.person),
+          label: 'Account',
         ),
       ],
       currentIndex: currentindex,
       selectedItemColor: Colors.black,
+      unselectedItemColor: Colors.white,
       onTap: onItemSelected,
     );
   }

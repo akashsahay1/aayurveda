@@ -1,3 +1,4 @@
+import 'package:ayurveda/components/pages/home.dart';
 import 'package:ayurveda/components/pages/signup.dart';
 import 'package:flutter/material.dart';
 
@@ -182,6 +183,26 @@ class _LoginState extends State<Login> {
                     ),
                   )
                 ],
+              ),
+              const SizedBox(
+                height: 30.0,
+              ),
+              GestureDetector(
+                onTap: () => {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const Home(),
+                    ),
+                  )
+                },
+                child: const Text(
+                  "Skip to home",
+                  style: TextStyle(
+                    color: Color(0xfff7770f),
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               )
             ],
           ),

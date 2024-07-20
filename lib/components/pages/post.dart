@@ -25,8 +25,8 @@ class _PostState extends State<Post> {
   @override
   void initState() {
     super.initState();
-    postid = postid;
-    posttitle = posttitle;
+    postid = widget.postid;
+    posttitle = widget.posttitle;
   }
 
   Future<dynamic> fetchpost() async {
@@ -47,57 +47,63 @@ class _PostState extends State<Post> {
     return Scaffold(
       appBar: Appbar(title: widget.posttitle),
       body: SafeArea(
-          child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Column(children: [
-                FutureBuilder(
-                  future: fetchpost(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SizedBox(
-                          height: 300,
-                          width: double.infinity,
-                          child: Center(
-                              child: CircularProgressIndicator(
-                                  color: Colors.amber)));
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else {
-                      final post = snapshot.data;
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              CachedNetworkImage(
-                                imageUrl: post['featured_image_url'] ?? '',
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: 260.0,
-                                placeholder: (context, url) => const Center(
-                                  child: CircularProgressIndicator(
-                                      color: Colors.amber),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              FutureBuilder(
+                future: fetchpost(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SizedBox(
+                      height: 300,
+                      width: double.infinity,
+                      child: Center(
+                        child: CircularProgressIndicator(color: Colors.amber),
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else {
+                    final post = snapshot.data;
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: post['featured_image_url'] ?? '',
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 260.0,
+                              placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.amber,
                                 ),
-                                errorWidget: (context, url, error) =>
-                                    const Icon(Icons.error),
                               ),
-                              Html(
-                                  data: post['content']['rendered'] +
-                                          "<p style='font-size: 20px;'>Source: " +
-                                          post['content'] +
-                                          "</p>" ??
-                                      '')
-                            ],
-                          ),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                            ),
+                            Html(
+                              data: (post['content']['rendered'] ?? '') +
+                                  "<p style='font-weight: bold; font-size: 20px;'>Source: " +
+                                  (post['sources'] ?? '') +
+                                  "</p>",
+                            )
+                          ],
                         ),
-                      );
-                    }
-                  },
-                )
-              ]))),
-      bottomNavigationBar: const Bottombar(currentIndex: -1),
+                      ),
+                    );
+                  }
+                },
+              )
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: const Bottombar(currentIndex: 0),
     );
   }
 }

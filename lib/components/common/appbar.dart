@@ -9,7 +9,7 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text(title),
-      backgroundColor: Colors.amber,
+      backgroundColor: const Color(0xfff7770f),
       foregroundColor: Colors.black,
     );
   }

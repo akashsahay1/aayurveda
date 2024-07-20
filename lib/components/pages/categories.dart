@@ -47,7 +47,7 @@ class _CategoriesState extends State<Categories> {
               Container(
                 height: 80.0,
                 width: double.infinity,
-                color: Colors.amber,
+                color: const Color(0xfff7770f),
                 child: const Padding(
                   padding: EdgeInsets.only(
                     left: 15.0,
@@ -58,9 +58,9 @@ class _CategoriesState extends State<Categories> {
                   child: Text(
                     "Dashboard",
                     style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 22.0,
-                    ),
+                        color: Colors.white,
+                        fontSize: 22.0,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
               ),

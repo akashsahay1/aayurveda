@@ -10,7 +10,7 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Colors.amber,
+        color: Colors.white,
         width: double.infinity,
         height: double.infinity,
         child: SizedBox(
@@ -50,23 +50,24 @@ class Home extends StatelessWidget {
                     );
                   },
                   style: const ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(Colors.deepPurple),
+                    backgroundColor: WidgetStatePropertyAll(Color(0xfff7770f)),
                     foregroundColor: WidgetStatePropertyAll(Colors.white),
                     shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(3.0)),
+                        borderRadius: BorderRadius.all(Radius.circular(30.0)),
                         side: BorderSide(
-                          color: Colors.deepPurple,
+                          color: Color(0xfff7770f),
                         ),
                       ),
                     ),
+                    minimumSize: WidgetStatePropertyAll(Size(140.0, 55.0)),
                   ),
                   child: const Text(
                     AppStrings.btngetStarted,
                     style: TextStyle(
                       color: Colors.white,
                       fontFamily: 'OpenSans',
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 1.0,
                     ),
                   ),

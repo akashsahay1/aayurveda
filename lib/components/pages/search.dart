@@ -50,11 +50,17 @@ class _SearchState extends State<Search> {
   final TextEditingController _searchController = TextEditingController();
   List<WordPressPost> _searchResults = [];
 
+  bool _isloading = false;
+
   void _search() async {
+    setState(() {
+      _isloading = true;
+    });
     final query = _searchController.text;
     final results = await searchPosts(query);
     setState(() {
       _searchResults = results;
+      _isloading = false;
     });
   }
 
@@ -62,28 +68,65 @@ class _SearchState extends State<Search> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const Appbar(title: 'Search'),
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.only(
-                top: 25.0, left: 15.0, right: 15.0, bottom: 0.0),
+              top: 25.0,
+              left: 15.0,
+              right: 15.0,
+              bottom: 0.0,
+            ),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 hintText: "Search",
-                suffixIcon: IconButton(
-                  onPressed: () => setState(() {
-                    _search();
-                  }),
-                  icon: const Icon(Icons.search),
-                ),
+                suffixIcon: _isloading
+                    ? Container(
+                        width: 20.0,
+                        height: 20.0,
+                        padding: const EdgeInsets.all(12.0),
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 3.0,
+                          color: Color(0xfff7770f),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.search,
+                        color: Color(0xfff7770f),
+                      ),
                 hintStyle: const TextStyle(color: Colors.white38),
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0xfff7770f),
+                  ),
                   borderRadius: BorderRadius.circular(10.0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(
+                      color: Color(0xfff7770f)), // Enabled border color
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(
+                      color: Color(0xfff7770f),
+                      width: 2.0), // Focused border color
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(
+                      color: Colors.red, width: 2.0), // Error border color
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(
+                      color: Colors.red,
+                      width: 2.0), // Focused error border color
                 ),
               ),
               onSubmitted: (_) => _search(),
@@ -91,8 +134,9 @@ class _SearchState extends State<Search> {
           ),
           Expanded(
             child: ListView.separated(
-              separatorBuilder: (context, index) =>
-                  const SizedBox(height: 10.0),
+              separatorBuilder: (context, index) => const SizedBox(
+                height: 10.0,
+              ),
               physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.all(15.0),
               itemCount: _searchResults.length,
@@ -106,19 +150,24 @@ class _SearchState extends State<Search> {
                   return InkWell(
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) =>
-                            Post(postid: postid.toInt(), posttitle: posttitle),
+                        builder: (context) => Post(
+                          postid: postid.toInt(),
+                          posttitle: posttitle,
+                        ),
                       ),
                     ),
                     child: Card(
-                      color: Colors.amber,
+                      color: const Color(0xfff7770f),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       child: Container(
                         height: 100.0,
                         width: double.infinity,
-                        padding: const EdgeInsets.only(left: 0.0, right: 5.0),
+                        padding: const EdgeInsets.only(
+                          left: 0.0,
+                          right: 5.0,
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -128,8 +177,9 @@ class _SearchState extends State<Search> {
                               width: 100.0,
                               decoration: BoxDecoration(
                                 borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(10.0),
-                                    bottomLeft: Radius.circular(10.0)),
+                                  topLeft: Radius.circular(10.0),
+                                  bottomLeft: Radius.circular(10.0),
+                                ),
                                 image: DecorationImage(
                                   image: NetworkImage(post.thumbnailUrl),
                                   fit: BoxFit.cover,
@@ -138,16 +188,29 @@ class _SearchState extends State<Search> {
                             ),
                             const SizedBox(width: 15.0),
                             Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               mainAxisSize: MainAxisSize.max,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 15.0),
-                                Text(post.title,
-                                    style: const TextStyle(fontSize: 20.0)),
-                                const SizedBox(height: 5.0),
-                                Text(formattedDate,
-                                    style: const TextStyle(fontSize: 16.0)),
+                                Text(
+                                  post.title,
+                                  style: const TextStyle(
+                                    fontSize: 20.0,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 5.0,
+                                ),
+                                Text(
+                                  formattedDate,
+                                  style: const TextStyle(
+                                    fontSize: 16.0,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -161,9 +224,13 @@ class _SearchState extends State<Search> {
                       height: 50,
                       width: 50,
                       child: Center(
-                        child: Text("Search for the articles",
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 20.0)),
+                        child: Text(
+                          "Search for the articles",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20.0,
+                          ),
+                        ),
                       ),
                     );
                   } else {
@@ -171,9 +238,13 @@ class _SearchState extends State<Search> {
                       height: 50,
                       width: 50,
                       child: Center(
-                        child: Text("",
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 20.0)),
+                        child: Text(
+                          "",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20.0,
+                          ),
+                        ),
                       ),
                     );
                   }

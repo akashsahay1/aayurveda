@@ -19,9 +19,14 @@ class _SignupState extends State<Signup> {
   final TextEditingController cpasswordField = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
+  bool _isloading = false;
 
   Future<void> _signup() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isloading = true;
+      });
+
       final Map<String, String> data = {
         'signup': '1',
         'fullname': fullName.text,
@@ -39,6 +44,10 @@ class _SignupState extends State<Signup> {
 
       if (!mounted) return;
 
+      setState(() {
+        _isloading = false;
+      });
+
       if (response.statusCode == 200) {
         final responseData = response.body;
         if (responseData.isNotEmpty) {
@@ -46,47 +55,125 @@ class _SignupState extends State<Signup> {
           if (signupresponse['status'] == 1) {
             showDialog(
               context: context,
+              barrierDismissible: false,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  icon: const Icon(Icons.check),
+                  icon: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(
+                          8.0), // Padding inside the border
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color(0xfff7770f), // Border color
+                          width: 2.0, // Border width
+                        ),
+                        borderRadius: BorderRadius.circular(
+                            50.0), // Optional: Add rounded corners
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        size: 35.0,
+                        color: Color(0xfff7770f), // Icon color
+                      ),
+                    ),
+                  ),
                   iconColor: const Color(0xfff7770f),
-                  title: const Text("Account Created Successfully"),
-                  content: const Text(
-                    "Thank you for creating your account with us, please login to continue.",
-                    textAlign: TextAlign.center,
+                  title: const Padding(
+                    padding: EdgeInsets.only(top: 15.0),
+                    child: Text("Account Created Successfully"),
+                  ),
+                  content: Padding(
+                    padding: const EdgeInsets.only(
+                      top: 20.0,
+                      bottom: 20.0,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RichText(
+                          textAlign: TextAlign.center,
+                          text: const TextSpan(
+                            style: TextStyle(
+                              fontSize: 17.0,
+                              color: Colors
+                                  .black, // Make sure to set the default text color
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                  text:
+                                      "Thank you for creating your account with us! "),
+                              TextSpan(
+                                text: "We're thrilled to have you on board. ",
+                                style: TextStyle(
+                                    fontWeight:
+                                        FontWeight.bold), // Bold this part
+                              ),
+                              TextSpan(
+                                text:
+                                    "Please take a moment to log in and set up your new account.",
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20.0,
+                        ),
+                        const Text(
+                          "By doing so, you'll be able to personalize your experience and start adding your favorite items to your custom list.",
+                          style: TextStyle(
+                            fontSize: 17.0,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(
+                          height: 20.0,
+                        ),
+                        const Text(
+                          "We're committed to making your journey with us enjoyable and tailored to your preferences. Welcome to our community!",
+                          style: TextStyle(
+                            fontSize: 17.0,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                      ],
+                    ),
                   ),
                   actionsAlignment: MainAxisAlignment.center,
                   actions: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const Login(),
-                          ),
-                        );
-                      },
-                      style: const ButtonStyle(
-                        backgroundColor:
-                            WidgetStatePropertyAll(Color(0xfff7770f)),
-                        foregroundColor: WidgetStatePropertyAll(Colors.white),
-                        shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(30.0)),
-                            side: BorderSide(
-                              color: Color(0xfff7770f),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const Login(),
+                            ),
+                          );
+                        },
+                        style: const ButtonStyle(
+                          backgroundColor:
+                              WidgetStatePropertyAll(Color(0xfff7770f)),
+                          foregroundColor: WidgetStatePropertyAll(Colors.white),
+                          shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30.0)),
+                              side: BorderSide(
+                                color: Color(0xfff7770f),
+                              ),
                             ),
                           ),
+                          minimumSize:
+                              WidgetStatePropertyAll(Size(140.0, 55.0)),
                         ),
-                        minimumSize: WidgetStatePropertyAll(Size(140.0, 55.0)),
-                      ),
-                      child: const Text(
-                        AppStrings.btngetStarted,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'OpenSans',
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.0,
+                        child: const Text(
+                          AppStrings.btngetStarted,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'OpenSans',
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.0,
+                          ),
                         ),
                       ),
                     )
@@ -173,7 +260,7 @@ class _SignupState extends State<Signup> {
                     ),
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 20.0,
+                      fontSize: 17.0,
                     ),
                   ),
                   const SizedBox(
@@ -200,7 +287,7 @@ class _SignupState extends State<Signup> {
                     ),
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 20.0,
+                      fontSize: 17.0,
                     ),
                   ),
                   const SizedBox(
@@ -228,7 +315,7 @@ class _SignupState extends State<Signup> {
                     ),
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 20.0,
+                      fontSize: 17.0,
                     ),
                   ),
                   const SizedBox(
@@ -256,7 +343,7 @@ class _SignupState extends State<Signup> {
                     ),
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 20.0,
+                      fontSize: 17.0,
                     ),
                   ),
                   const SizedBox(
@@ -285,13 +372,37 @@ class _SignupState extends State<Signup> {
                           minimumSize:
                               WidgetStatePropertyAll(Size(140.0, 55.0)),
                         ),
-                        child: const Text(
-                          "Create account",
-                          style: TextStyle(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: _isloading
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 20.0,
+                                    height: 20.0,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.0,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 10.0,
+                                  ),
+                                  Text(
+                                    "Processing...",
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Text(
+                                "Create account",
+                                style: TextStyle(
+                                  fontSize: 17.0,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                       ),
                     ],
                   ),
