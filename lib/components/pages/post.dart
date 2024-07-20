@@ -13,25 +13,32 @@ class Post extends StatefulWidget {
   final String posttitle;
 
   @override
-  // ignore: no_logic_in_create_state
-  State<Post> createState() => _PostState(postid: postid, posttitle: posttitle);
+  State<Post> createState() => _PostState();
 }
 
 class _PostState extends State<Post> {
-  final int postid;
-  final String posttitle;
+  late int postid;
+  late String posttitle;
 
-  _PostState({required this.postid, required this.posttitle});
+  _PostState();
+
+  @override
+  void initState() {
+    super.initState();
+    postid = postid;
+    posttitle = posttitle;
+  }
 
   Future<dynamic> fetchpost() async {
     final String postApiUrl = postApi + postid.toString();
     final response = await http.get(Uri.parse(postApiUrl));
 
-    if(response.statusCode == 200){ 
+    if (response.statusCode == 200) {
       final post = json.decode(response.body);
       return post;
     } else {
-      throw Exception('Failed to fetch posts. Status code: ${response.statusCode}');
+      throw Exception(
+          'Failed to fetch posts. Status code: ${response.statusCode}');
     }
   }
 
@@ -40,28 +47,26 @@ class _PostState extends State<Post> {
     return Scaffold(
       appBar: Appbar(title: widget.posttitle),
       body: SafeArea(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
-            children: [
-              FutureBuilder(
-                future: fetchpost(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SizedBox(
-                      height: 300,
-                      width: double.infinity,
-                      child: Center(
-                        child: CircularProgressIndicator(color:Colors.amber)
-                      )
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else {
-                    final post = snapshot.data;
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Padding(
+          child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(children: [
+                FutureBuilder(
+                  future: fetchpost(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox(
+                          height: 300,
+                          width: double.infinity,
+                          child: Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.amber)));
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else {
+                      final post = snapshot.data;
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: Padding(
                           padding: const EdgeInsets.all(15.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -72,22 +77,26 @@ class _PostState extends State<Post> {
                                 width: double.infinity,
                                 height: 260.0,
                                 placeholder: (context, url) => const Center(
-                                  child: CircularProgressIndicator(color: Colors.amber),
+                                  child: CircularProgressIndicator(
+                                      color: Colors.amber),
                                 ),
-                                errorWidget: (context, url, error) => const Icon(Icons.error),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
                               ),
-                              Html(data: post['content']['rendered'] ?? '')
+                              Html(
+                                  data: post['content']['rendered'] +
+                                          "<p style='font-size: 20px;'>Source: " +
+                                          post['content'] +
+                                          "</p>" ??
+                                      '')
                             ],
                           ),
                         ),
-                    );
-                  }
-                },
-              )
-            ]
-          )
-        )
-      ),
+                      );
+                    }
+                  },
+                )
+              ]))),
       bottomNavigationBar: const Bottombar(currentIndex: -1),
     );
   }

@@ -11,7 +11,6 @@ class Layout extends StatefulWidget {
 }
 
 class _LayoutState extends State<Layout> {
-
   int _selectedIndex = 0;
 
   static const List<Widget> _widgetOptions = <Widget>[
@@ -20,7 +19,7 @@ class _LayoutState extends State<Layout> {
     About(),
   ];
 
-static const List<String> _appBarTitles = <String>[
+  static const List<String> _appBarTitles = <String>[
     'Categories',
     'Search',
     'About',

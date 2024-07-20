@@ -6,7 +6,7 @@ class HorizontalPosts extends StatelessWidget {
   final String categoryName;
   final List<dynamic>? posts;
 
-  const HorizontalPosts(this.categoryName, this.posts, {super.key});
+  const HorizontalPosts({super.key, required this.categoryName, this.posts});
 
   @override
   Widget build(BuildContext context) {
@@ -16,21 +16,23 @@ class HorizontalPosts extends StatelessWidget {
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,      
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           categoryName,
           textAlign: TextAlign.left,
           style: const TextStyle(
             fontSize: 18.0,
-            fontWeight: FontWeight.w600, 
-            color: Colors.white                      
-          )
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
-        const SizedBox(height: 10.0,),
+        const SizedBox(
+          height: 10.0,
+        ),
         SizedBox(
           height: 190,
-          child:ListView.builder(
+          child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: posts!.length,
             itemBuilder: (BuildContext context, int index) {
@@ -41,13 +43,13 @@ class HorizontalPosts extends StatelessWidget {
                 onTap: () => {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => Post(postid: postid, posttitle:posttitle),
+                      builder: (context) =>
+                          Post(postid: postid, posttitle: posttitle),
                     ),
                   )
                 },
                 child: Container(
                   height: 190.0,
-                  width: 150.0,
                   margin: const EdgeInsets.only(left: 5.0, right: 5.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
@@ -59,18 +61,20 @@ class HorizontalPosts extends StatelessWidget {
                         child: CachedNetworkImage(
                           imageUrl: postThumbnail,
                           fit: BoxFit.cover,
-                          width: 150.0,
                           height: 190.0,
                           placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(color: Color.fromARGB(255, 222, 205, 252)),
+                            child: CircularProgressIndicator(
+                              color: Color.fromARGB(255, 222, 205, 252),
+                            ),
                           ),
-                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
                         ),
                       ),
-                      Center(
+                      Positioned.fill(
                         child: Container(
-                          width: 150.0,
                           height: 190.0,
+                          width: 150.0,
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(5.0),
@@ -91,13 +95,15 @@ class HorizontalPosts extends StatelessWidget {
                       ),
                     ],
                   ),
-                )
+                ),
               );
             },
-          )
+          ),
         ),
-        const SizedBox(height: 30.0,), 
-      ]
+        const SizedBox(
+          height: 30.0,
+        ),
+      ],
     );
   }
 }

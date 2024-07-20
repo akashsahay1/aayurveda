@@ -13,7 +13,11 @@ class WordPressPost {
   final DateTime date;
   final String thumbnailUrl;
 
-  WordPressPost({required this.id, required this.title, required this.date, required this.thumbnailUrl});
+  WordPressPost(
+      {required this.id,
+      required this.title,
+      required this.date,
+      required this.thumbnailUrl});
 }
 
 class Search extends StatefulWidget {
@@ -24,20 +28,20 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
-
   Future<List<WordPressPost>> searchPosts(String query) async {
-    var s = '$searchApi$query&per_page=50';
-    final String searctApiUrl = s;
+    final String searctApiUrl = '$searchApi$query&per_page=50';
     final response = await http.get(Uri.parse(searctApiUrl));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      return data.map((post) => WordPressPost(
-        id: post['id'],
-        title: post['title']['rendered'],
-        date: DateTime.parse(post['date']),
-        thumbnailUrl: post['featured_image_url'] ?? '',
-      )).toList();
+      return data
+          .map((post) => WordPressPost(
+                id: post['id'],
+                title: post['title']['rendered'],
+                date: DateTime.parse(post['date']),
+                thumbnailUrl: post['featured_image_url'] ?? '',
+              ))
+          .toList();
     } else {
       throw Exception('Failed to load posts');
     }
@@ -63,7 +67,8 @@ class _SearchState extends State<Search> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 25.0, left: 15.0, right: 15.0, bottom: 0.0),
+            padding: const EdgeInsets.only(
+                top: 25.0, left: 15.0, right: 15.0, bottom: 0.0),
             child: TextField(
               controller: _searchController,
               style: const TextStyle(color: Colors.white),
@@ -86,7 +91,8 @@ class _SearchState extends State<Search> {
           ),
           Expanded(
             child: ListView.separated(
-              separatorBuilder: (context, index) => const SizedBox(height: 10.0),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: 10.0),
               physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.all(15.0),
               itemCount: _searchResults.length,
@@ -95,11 +101,13 @@ class _SearchState extends State<Search> {
                   final post = _searchResults[index];
                   final postid = post.id;
                   final posttitle = post.title;
-                  final formattedDate = DateFormat('d-M-y h:mm a').format(post.date);
+                  final formattedDate =
+                      DateFormat('d-M-y h:mm a').format(post.date);
                   return InkWell(
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => Post(postid: postid.toInt(), posttitle: posttitle),
+                        builder: (context) =>
+                            Post(postid: postid.toInt(), posttitle: posttitle),
                       ),
                     ),
                     child: Card(
@@ -119,7 +127,9 @@ class _SearchState extends State<Search> {
                               height: 100.0,
                               width: 100.0,
                               decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.only(topLeft: Radius.circular(10.0), bottomLeft: Radius.circular(10.0)),
+                                borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0)),
                                 image: DecorationImage(
                                   image: NetworkImage(post.thumbnailUrl),
                                   fit: BoxFit.cover,
@@ -133,9 +143,11 @@ class _SearchState extends State<Search> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 15.0),
-                                Text(post.title, style: const TextStyle(fontSize: 20.0)),
+                                Text(post.title,
+                                    style: const TextStyle(fontSize: 20.0)),
                                 const SizedBox(height: 5.0),
-                                Text(formattedDate, style: const TextStyle(fontSize: 16.0)),
+                                Text(formattedDate,
+                                    style: const TextStyle(fontSize: 16.0)),
                               ],
                             ),
                           ],
@@ -144,20 +156,24 @@ class _SearchState extends State<Search> {
                     ),
                   );
                 } else {
-                  if(_searchResults.isEmpty){
+                  if (_searchResults.isEmpty) {
                     return const SizedBox(
                       height: 50,
                       width: 50,
                       child: Center(
-                        child: Text("Search for the articles", style: TextStyle(color: Colors.white, fontSize: 20.0)),
+                        child: Text("Search for the articles",
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 20.0)),
                       ),
                     );
-                  }else{
+                  } else {
                     return const SizedBox(
                       height: 50,
                       width: 50,
                       child: Center(
-                        child: Text("", style: TextStyle(color: Colors.white, fontSize: 20.0)),
+                        child: Text("",
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 20.0)),
                       ),
                     );
                   }

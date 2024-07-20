@@ -20,20 +20,29 @@ class Home extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset("assets/images/logo.png", width: 200.0, height: 200.0, fit: BoxFit.contain,),
-                const SizedBox(height: 15.0,),
+                Image.asset(
+                  "assets/images/logo.png",
+                  width: 200.0,
+                  height: 200.0,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(
+                  height: 15.0,
+                ),
                 const Text(
-                  AppStrings.welcomeMessage, 
+                  AppStrings.welcomeMessage,
                   style: TextStyle(
-                    fontSize: 16.0, 
+                    fontSize: 16.0,
                     fontWeight: FontWeight.w600,
                     fontFamily: 'OpenSans',
-                    color: Colors.black
+                    color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 15.0,),
+                const SizedBox(
+                  height: 15.0,
+                ),
                 ElevatedButton(
-                  onPressed: (){
+                  onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const Categories(),
@@ -46,20 +55,22 @@ class Home extends StatelessWidget {
                     shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(3.0)),
-                        side: BorderSide(color: Colors.deepPurple)
-                      )
-                    )  
-                  ), 
-                  child: const Text(
-                    AppStrings.btngetStarted, 
-                    style: TextStyle(
-                      color:Colors.white, 
-                      fontFamily: 'OpenSans', 
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 1.0
-                    )
+                        side: BorderSide(
+                          color: Colors.deepPurple,
+                        ),
+                      ),
+                    ),
                   ),
-                )               
+                  child: const Text(
+                    AppStrings.btngetStarted,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'OpenSans',
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                )
               ],
             ),
           ),

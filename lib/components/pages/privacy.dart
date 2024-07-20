@@ -20,15 +20,11 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0, bottom: 20.0),
+                padding: const EdgeInsets.only(
+                    left: 15.0, right: 15.0, top: 20.0, bottom: 20.0),
                 color: Colors.black,
-                child: const Text(
-                  "Privacy Policy", 
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white                    
-                  )
-                ),
+                child: const Text("Privacy Policy",
+                    style: TextStyle(fontSize: 20.0, color: Colors.white)),
               )
             ],
           ),
