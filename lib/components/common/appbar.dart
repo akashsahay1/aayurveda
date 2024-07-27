@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 
 class Appbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final bool showbackicon;
 
-  const Appbar({super.key, required this.title});
+  const Appbar({super.key, required this.title, this.showbackicon = true});
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(title),
-      backgroundColor: const Color(0xfff7770f),
-      foregroundColor: Colors.black,
-    );
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: const Color(0xfff7770f),
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: showbackicon);
   }
 
   @override

@@ -22,7 +22,7 @@ class HorizontalPosts extends StatelessWidget {
           categoryName,
           textAlign: TextAlign.left,
           style: const TextStyle(
-            fontSize: 18.0,
+            fontSize: 20.0,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
@@ -84,7 +84,7 @@ class HorizontalPosts extends StatelessWidget {
                               posttitle,
                               style: const TextStyle(
                                 color: Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 14.0,
+                                fontSize: 18.0,
                                 fontFamily: 'OpenSans',
                                 fontWeight: FontWeight.bold,
                               ),

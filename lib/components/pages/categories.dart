@@ -1,3 +1,4 @@
+import 'package:ayurveda/components/common/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -13,7 +14,8 @@ class Categories extends StatefulWidget {
 
 class _CategoriesState extends State<Categories> {
   Future<Map<String, List<dynamic>>> fetchPosts() async {
-    const String postsapiurl = '${postsApi}3,9,2,6,7&per_page=50';
+    const String postsapiurl =
+        '${postsApi}2,3,4,5,6,7,8,9,10,11,12&per_page=50';
     final response = await http.get(Uri.parse(postsapiurl));
     if (response.statusCode == 200) {
       final List<dynamic> posts = json.decode(response.body);
@@ -37,34 +39,16 @@ class _CategoriesState extends State<Categories> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //appBar: Appbar(title: 'Categories'),
+      appBar: const Appbar(
+        title: 'Categories',
+        showbackicon: false,
+      ),
       backgroundColor: Colors.black,
       body: SafeArea(
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Column(
             children: [
-              Container(
-                height: 80.0,
-                width: double.infinity,
-                color: const Color(0xfff7770f),
-                child: const Padding(
-                  padding: EdgeInsets.only(
-                    left: 15.0,
-                    right: 15.0,
-                    top: 25.0,
-                    bottom: 25.0,
-                  ),
-                  child: Text(
-                    "Dashboard",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22.0,
-                        fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10.0),
               FutureBuilder<Map<String, List<dynamic>>>(
                 future: fetchPosts(),
                 builder: (BuildContext context, snapshot) {
@@ -96,19 +80,24 @@ class _CategoriesState extends State<Categories> {
                         child: Column(
                           children: [
                             HorizontalPosts(
+                              key: const Key('dry_fruits'),
+                              categoryName: 'Dry Fruits',
+                              posts: categorizedPosts['category_2'],
+                            ),
+                            HorizontalPosts(
                               key: const Key('ayurvedic_medicines'),
                               categoryName: 'Ayurvedic Medicines',
                               posts: categorizedPosts['category_3'],
                             ),
                             HorizontalPosts(
-                              key: const Key('beauty_tips'),
-                              categoryName: 'Beauty Tips',
-                              posts: categorizedPosts['category_9'],
+                              key: const Key('home_remedies'),
+                              categoryName: 'Home Remedies',
+                              posts: categorizedPosts['category_4'],
                             ),
                             HorizontalPosts(
-                              key: const Key('dry_fruits'),
-                              categoryName: 'Dry Fruits',
-                              posts: categorizedPosts['category_2'],
+                              key: const Key('yoga'),
+                              categoryName: 'Yoga',
+                              posts: categorizedPosts['category_5'],
                             ),
                             HorizontalPosts(
                               key: const Key('fit_daily_rutines'),
@@ -119,6 +108,31 @@ class _CategoriesState extends State<Categories> {
                               key: const Key('fruits'),
                               categoryName: 'Fruits',
                               posts: categorizedPosts['category_7'],
+                            ),
+                            HorizontalPosts(
+                              key: const Key('vegitables'),
+                              categoryName: 'Vegetables',
+                              posts: categorizedPosts['category_8'],
+                            ),
+                            HorizontalPosts(
+                              key: const Key('beauty_tips'),
+                              categoryName: 'Beauty Tips',
+                              posts: categorizedPosts['category_9'],
+                            ),
+                            HorizontalPosts(
+                              key: const Key('skin_fitness'),
+                              categoryName: 'Skin Fitness',
+                              posts: categorizedPosts['category_10'],
+                            ),
+                            HorizontalPosts(
+                              key: const Key('skin_routine'),
+                              categoryName: 'Skin Routine',
+                              posts: categorizedPosts['category_11'],
+                            ),
+                            HorizontalPosts(
+                              key: const Key('herbal_cure'),
+                              categoryName: 'Herbal Cure',
+                              posts: categorizedPosts['category_12'],
                             ),
                           ],
                         ),

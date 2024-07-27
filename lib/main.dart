@@ -3,13 +3,17 @@ import './constants/texts.dart';
 import './components/pages/home.dart';
 
 void main() {
-  runApp(MaterialApp(
+  runApp(
+    MaterialApp(
       title: AppStrings.appTitle,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 252, 166, 8)),
+          seedColor: const Color.fromARGB(255, 252, 166, 8),
+        ),
         useMaterial3: true,
       ),
-      home: const Home()));
+      home: const Home(),
+    ),
+  );
 }

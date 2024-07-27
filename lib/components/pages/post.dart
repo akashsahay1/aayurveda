@@ -19,6 +19,10 @@ class Post extends StatefulWidget {
 class _PostState extends State<Post> {
   late int postid;
   late String posttitle;
+  late String likes = '0';
+  late String dislikes = '0';
+  late String comments = '0';
+  late bool likedIcon = false;
 
   _PostState();
 
@@ -35,12 +39,50 @@ class _PostState extends State<Post> {
 
     if (response.statusCode == 200) {
       final post = json.decode(response.body);
+      setState(() {});
       return post;
     } else {
       throw Exception(
-          'Failed to fetch posts. Status code: ${response.statusCode}');
+        'Failed to fetch posts. Status code: ${response.statusCode}',
+      );
     }
   }
+
+  Future<dynamic> addLike() async {
+    final Map<String, String> data = {
+      'addlike': '1',
+      'postid': postid.toString(),
+      'userid': '1',
+    };
+
+    final response = await http.post(
+      Uri.parse(ajaxApi),
+      headers: <String, String>{
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    );
+
+    if (!mounted) return;
+
+    if (response.statusCode == 200) {
+      final responseData = response.body;
+      if (responseData.isNotEmpty) {
+        final likeresponse = jsonDecode(responseData);
+        if (likeresponse['status'] == 1) {}
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No data returned from API')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to like')),
+      );
+    }
+  }
+
+  Future<dynamic> adddisLike() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +133,121 @@ class _PostState extends State<Post> {
                                   "<p style='font-weight: bold; font-size: 20px;'>Source: " +
                                   (post['sources'] ?? '') +
                                   "</p>",
-                            )
+                            ),
+                            const SizedBox(
+                              height: 5.0,
+                            ),
+                            const Divider(
+                              height: 2.0,
+                              color: Colors.black26,
+                            ),
+                            const SizedBox(
+                              height: 30.0,
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        addLike();
+                                      },
+                                      child: Row(
+                                        children: [
+                                          likedIcon
+                                              ? const Icon(
+                                                  Icons.thumb_up,
+                                                  size: 28.0,
+                                                  color: Color(0xfff7770f),
+                                                )
+                                              : const Icon(
+                                                  Icons.thumb_up_alt_outlined,
+                                                  size: 28.0,
+                                                  color: Color(0xfff7770f),
+                                                ),
+                                          const SizedBox(
+                                            width: 5.0,
+                                          ),
+                                          Text(
+                                            post['likes'],
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 20.0,
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        adddisLike();
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            post['dislikes'],
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 5.0,
+                                          ),
+                                          const Icon(
+                                            Icons.thumb_down_alt_outlined,
+                                            size: 28.0,
+                                            color: Color(0xfff7770f),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {},
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            post['comments_count'],
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 5.0,
+                                          ),
+                                          Text(
+                                            post['comments_count'] == '1'
+                                                ? 'Comment'
+                                                : 'Comments',
+                                            style: const TextStyle(
+                                              color: Color(0xfff7770f),
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 30.0,
+                            ),
                           ],
                         ),
                       ),
