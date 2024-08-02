@@ -77,7 +77,7 @@ class Home extends StatelessWidget {
           ),
         ),
       ),
-      backgroundColor: Colors.amber,
+      backgroundColor: const Color(0xfff7770f),
     );
   }
 }

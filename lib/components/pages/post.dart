@@ -24,6 +24,8 @@ class _PostState extends State<Post> {
   late String comments = '0';
   late bool likedIcon = false;
 
+  late Future<dynamic> postFuture;
+
   _PostState();
 
   @override
@@ -31,6 +33,7 @@ class _PostState extends State<Post> {
     super.initState();
     postid = widget.postid;
     posttitle = widget.posttitle;
+    postFuture = fetchpost();
   }
 
   Future<dynamic> fetchpost() async {
@@ -69,7 +72,9 @@ class _PostState extends State<Post> {
       final responseData = response.body;
       if (responseData.isNotEmpty) {
         final likeresponse = jsonDecode(responseData);
-        if (likeresponse['status'] == 1) {}
+        if (likeresponse['status'] == 1) {
+          print(likeresponse);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No data returned from API')),
@@ -94,14 +99,16 @@ class _PostState extends State<Post> {
           child: Column(
             children: [
               FutureBuilder(
-                future: fetchpost(),
+                future: postFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const SizedBox(
                       height: 300,
                       width: double.infinity,
                       child: Center(
-                        child: CircularProgressIndicator(color: Colors.amber),
+                        child: CircularProgressIndicator(
+                          color: Color(0xfff7770f),
+                        ),
                       ),
                     );
                   } else if (snapshot.hasError) {
@@ -122,7 +129,7 @@ class _PostState extends State<Post> {
                               height: 260.0,
                               placeholder: (context, url) => const Center(
                                 child: CircularProgressIndicator(
-                                  color: Colors.amber,
+                                  color: Color(0xfff7770f),
                                 ),
                               ),
                               errorWidget: (context, url, error) =>

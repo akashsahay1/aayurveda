@@ -9,7 +9,7 @@ void main() {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 252, 166, 8),
+          seedColor: const Color(0xfff7770f),
         ),
         useMaterial3: true,
       ),
