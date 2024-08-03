@@ -73,7 +73,7 @@ class _PostState extends State<Post> {
       if (responseData.isNotEmpty) {
         final likeresponse = jsonDecode(responseData);
         if (likeresponse['status'] == 1) {
-          print(likeresponse);
+          debugPrint('log: $likeresponse');
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
