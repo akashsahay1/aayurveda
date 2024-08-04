@@ -6,7 +6,7 @@ void main() {
   runApp(
     MaterialApp(
       title: AppStrings.appTitle,
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: true,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xfff7770f),
