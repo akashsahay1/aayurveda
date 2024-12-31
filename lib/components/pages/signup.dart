@@ -53,134 +53,151 @@ class _SignupState extends State<Signup> {
         if (responseData.isNotEmpty) {
           final signupresponse = jsonDecode(responseData);
           if (signupresponse['status'] == 1) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  icon: Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(
-                          8.0), // Padding inside the border
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color(0xfff7770f), // Border color
-                          width: 2.0, // Border width
-                        ),
-                        borderRadius: BorderRadius.circular(
-                            50.0), // Optional: Add rounded corners
-                      ),
-                      child: const Icon(
-                        Icons.check,
-                        size: 35.0,
-                        color: Color(0xfff7770f), // Icon color
-                      ),
-                    ),
-                  ),
-                  iconColor: const Color(0xfff7770f),
-                  title: const Padding(
-                    padding: EdgeInsets.only(top: 15.0),
-                    child: Text("Account Created Successfully"),
-                  ),
-                  content: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 20.0,
-                      bottom: 20.0,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: const TextSpan(
-                            style: TextStyle(
-                              fontSize: 17.0,
-                              color: Colors
-                                  .black, // Make sure to set the default text color
-                            ),
-                            children: <TextSpan>[
-                              TextSpan(
-                                  text:
-                                      "Thank you for creating your account with us! "),
-                              TextSpan(
-                                text: "We're thrilled to have you on board. ",
-                                style: TextStyle(
-                                    fontWeight:
-                                        FontWeight.bold), // Bold this part
-                              ),
-                              TextSpan(
-                                text:
-                                    "Please take a moment to log in and set up your new account.",
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        const Text(
-                          "By doing so, you'll be able to personalize your experience and start adding your favorite items to your custom list.",
-                          style: TextStyle(
-                            fontSize: 17.0,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        const Text(
-                          "We're committed to making your journey with us enjoyable and tailored to your preferences. Welcome to our community!",
-                          style: TextStyle(
-                            fontSize: 17.0,
-                          ),
-                          textAlign: TextAlign.center,
-                        )
-                      ],
-                    ),
-                  ),
-                  actionsAlignment: MainAxisAlignment.center,
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const Login(),
-                            ),
-                          );
-                        },
-                        style: const ButtonStyle(
-                          backgroundColor:
-                              WidgetStatePropertyAll(Color(0xfff7770f)),
-                          foregroundColor: WidgetStatePropertyAll(Colors.white),
-                          shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30.0)),
-                              side: BorderSide(
-                                color: Color(0xfff7770f),
-                              ),
-                            ),
-                          ),
-                          minimumSize:
-                              WidgetStatePropertyAll(Size(140.0, 55.0)),
-                        ),
-                        child: const Text(
-                          AppStrings.btngetStarted,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'OpenSans',
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                );
-              },
-            );
+            // Replace the existing showDialog code with this:
+			showDialog(
+				context: context,
+				barrierDismissible: false,
+				builder: (BuildContext context) {
+					return OrientationBuilder(
+						builder: (context, orientation) {
+							return Dialog(
+								insetPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+								shape: RoundedRectangleBorder(
+									borderRadius: BorderRadius.circular(20.0),
+								),
+								child: Container(
+									width: orientation == Orientation.portrait
+										? MediaQuery.of(context).size.width * 0.9
+										: MediaQuery.of(context).size.width * 0.7,
+									constraints: BoxConstraints(
+									maxHeight: MediaQuery.of(context).size.height * 0.8,
+									),
+									child: Column(
+										mainAxisSize: MainAxisSize.min,
+										children: [
+											Flexible(
+												child: SingleChildScrollView(
+													child: Column(
+														mainAxisSize: MainAxisSize.min,
+														children: [
+															Padding(
+																padding: const EdgeInsets.all(16.0),
+																child: Center(
+																	child: Container(
+																		padding: const EdgeInsets.all(8.0),
+																		decoration: BoxDecoration(
+																			border: Border.all(
+																			color: const Color(0xfff7770f),
+																			width: 2.0,
+																			),
+																			borderRadius: BorderRadius.circular(50.0),
+																		),
+																		child: const Icon(
+																			Icons.check,
+																			size: 35.0,
+																			color: Color(0xfff7770f),
+																		),
+																	),
+																),
+															),
+															const Padding(
+																padding: EdgeInsets.only(top: 15.0),
+																child: Text(
+																	"Account Created Successfully",
+																	style: TextStyle(
+																		fontSize: 20.0,
+																		fontWeight: FontWeight.bold,
+																	),
+																	textAlign: TextAlign.center,
+																),
+															),
+															Padding(
+																padding: const EdgeInsets.all(20.0),
+																child: Column(
+																	mainAxisSize: MainAxisSize.min,
+																	children: [
+																		RichText(
+																			textAlign: TextAlign.center,
+																			text: const TextSpan(
+																				style: TextStyle(
+																					fontSize: 17.0,
+																					color: Colors.black,
+																				),
+																				children: <TextSpan>[
+																					TextSpan(
+																						text: "Thank you for creating your account with us! ",
+																					),
+																					TextSpan(
+																						text: "We're thrilled to have you on board. ",
+																						style: TextStyle(fontWeight: FontWeight.bold),
+																					),
+																					TextSpan(
+																						text: "Please take a moment to log in and set up your new account.",
+																					),
+																				],
+																			),
+																		),
+																		const SizedBox(height: 20.0),
+																		const Text(
+																			"By doing so, you'll be able to personalize your experience and start adding your favorite items to your custom list.",
+																			style: TextStyle(fontSize: 17.0),
+																			textAlign: TextAlign.center,
+																		),
+																		const SizedBox(height: 20.0),
+																		const Text(
+																		"We're committed to making your journey with us enjoyable and tailored to your preferences. Welcome to our community!",
+																		style: TextStyle(fontSize: 17.0),
+																		textAlign: TextAlign.center,
+																	),
+																	],
+																),
+															),
+														],
+													),
+												),
+											),
+											Padding(
+												padding: const EdgeInsets.all(20.0),
+												child: ElevatedButton(
+													onPressed: () {
+														Navigator.of(context).push(
+															MaterialPageRoute(
+															builder: (context) => const Login(),
+															),
+														);
+													},
+													style: ButtonStyle(
+														backgroundColor: const WidgetStatePropertyAll(Color(0xfff7770f)),
+														foregroundColor: const WidgetStatePropertyAll(Colors.white),
+														shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+															RoundedRectangleBorder(
+															borderRadius: BorderRadius.circular(30.0),
+															side: const BorderSide(
+																color: Color(0xfff7770f),
+															),
+														),
+													),
+													minimumSize: const WidgetStatePropertyAll(Size(140.0, 55.0,),),
+												),
+												child: const Text(
+													AppStrings.btngetStarted,
+													style: TextStyle(
+														color: Colors.white,
+														fontFamily: 'OpenSans',
+														fontWeight: FontWeight.w700,
+														letterSpacing: 1.0,
+													),
+												),
+											),
+										),
+										],
+									),
+								),
+							);
+						},
+					);
+				},
+			);
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
