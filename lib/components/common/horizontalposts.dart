@@ -68,7 +68,7 @@ class HorizontalPosts extends StatelessWidget {
                             ),
                           ),
                           errorWidget: (context, url, error) =>
-                              const Icon(Icons.error),
+                            const Icon(Icons.error),
                         ),
                       ),
                       Positioned.fill(
@@ -76,7 +76,7 @@ class HorizontalPosts extends StatelessWidget {
                           height: 190.0,
                           width: 150.0,
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withAlpha(30),
                             borderRadius: BorderRadius.circular(5.0),
                           ),
                           child: Center(

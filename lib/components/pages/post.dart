@@ -133,13 +133,13 @@ class _PostState extends State<Post> {
                                 ),
                               ),
                               errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error),
+                                const Icon(Icons.error),
                             ),
                             Html(
-                              data: (post['content']['rendered'] ?? '') +
-                                  "<p style='font-weight: bold; font-size: 20px;'>Source: " +
-                                  (post['sources'] ?? '') +
-                                  "</p>",
+                              data: '''
+                                ${post['content']['rendered'] ?? ''}
+                                <p style='font-weight: bold; font-size: 20px;'>Source: ${post['sources'] ?? ''}</p>
+                                '''
                             ),
                             const SizedBox(
                               height: 5.0,

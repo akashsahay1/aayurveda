@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/texts.dart';
 import '../pages/categories.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatelessWidget { 
   const Home({super.key});
 
   // This widget is the root of your application.
@@ -40,6 +40,10 @@ class Home extends StatelessWidget {
                 ),
                 const SizedBox(
                   height: 15.0,
+                ),
+                const Text("Hello World", style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600, fontFamily: 'OpenSans')),
+                const SizedBox( 
+                  height: 15.0,                  
                 ),
                 ElevatedButton(
                   onPressed: () {
