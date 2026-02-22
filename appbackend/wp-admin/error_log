@@ -1,0 +1,7 @@
+[11-Nov-2023 06:49:31 UTC] PHP Warning:  Attempt to read property "title" on null in /home/stimeapi/public_html/subdomains/aayurveda/wp-includes/class-wp-customize-widgets.php on line 905
+[11-Nov-2023 06:49:31 UTC] PHP Stack trace:
+[11-Nov-2023 06:49:31 UTC] PHP   1. {main}() /home/stimeapi/public_html/subdomains/aayurveda/wp-admin/customize.php:0
+[11-Nov-2023 06:49:31 UTC] PHP   2. do_action($hook_name = 'customize_controls_print_footer_scripts') /home/stimeapi/public_html/subdomains/aayurveda/wp-admin/customize.php:302
+[11-Nov-2023 06:49:31 UTC] PHP   3. WP_Hook->do_action($args = [0 => '']) /home/stimeapi/public_html/subdomains/aayurveda/wp-includes/plugin.php:517
+[11-Nov-2023 06:49:31 UTC] PHP   4. WP_Hook->apply_filters($value = '', $args = [0 => '']) /home/stimeapi/public_html/subdomains/aayurveda/wp-includes/class-wp-hook.php:348
+[11-Nov-2023 06:49:31 UTC] PHP   5. WP_Customize_Widgets->output_widget_control_templates('') /home/stimeapi/public_html/subdomains/aayurveda/wp-includes/class-wp-hook.php:324
