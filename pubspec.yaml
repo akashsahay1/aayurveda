@@ -18,6 +18,8 @@ dependencies:
   intl: ^0.18.1
   flutter_launcher_icons: ^0.13.1
   package_rename: ^1.7.0
+  provider: ^6.1.2
+  shared_preferences: ^2.3.4
 
 launcher_name:
   default: "Aayurveda" 

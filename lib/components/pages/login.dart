@@ -1,16 +1,18 @@
+import 'package:provider/provider.dart';
 import 'package:ayurveda/components/pages/home.dart';
 import 'package:ayurveda/components/pages/signup.dart';
 import 'package:ayurveda/constants/apis.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:ayurveda/models/user.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
 
   @override
   State<Login> createState() => _LoginState();
-}
+} 
 
 class _LoginState extends State<Login> {
   TextEditingController emailField = TextEditingController();
@@ -18,7 +20,7 @@ class _LoginState extends State<Login> {
   late FocusNode _emailFocusNode;
   late FocusNode _passwordFocusNode;
 
-  @override
+  @override 
   void initState() {
     super.initState();
     _emailFocusNode = FocusNode();
@@ -89,6 +91,8 @@ class _LoginState extends State<Login> {
         if (responseData.isNotEmpty) {
           final loginresponse = jsonDecode(responseData);
           if (loginresponse['status'] == 1) {
+            await Provider.of<UserState>(context, listen: false)
+                .login(loginresponse);
             debugPrint(loginresponse);
           }
         } else {

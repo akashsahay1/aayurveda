@@ -17,7 +17,7 @@ class Post extends StatefulWidget {
 }
 
 class _PostState extends State<Post> {
-  late int postid;
+  late int postid; 
   late String posttitle;
   late String likes = '0';
   late String dislikes = '0';
