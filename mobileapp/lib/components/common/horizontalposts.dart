@@ -18,18 +18,18 @@ class HorizontalPosts extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          categoryName,
-          textAlign: TextAlign.left,
-          style: const TextStyle(
-            fontSize: 20.0,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+        if (categoryName.isNotEmpty) ...[
+          Text(
+            categoryName,
+            textAlign: TextAlign.left,
+            style: const TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
-        ),
-        const SizedBox(
-          height: 10.0,
-        ),
+          const SizedBox(height: 10.0),
+        ],
         SizedBox(
           height: 190,
           child: ListView.builder(
@@ -39,17 +39,18 @@ class HorizontalPosts extends StatelessWidget {
               final postid = posts![index]['id'];
               final postThumbnail = posts![index]['featured_image_url'];
               final posttitle = posts![index]['title']['rendered'];
+              final hasSources = posts![index]['has_sources'] == true;
               return InkWell(
                 onTap: () => {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) =>
-                          Post(postid: postid, posttitle: posttitle),
+                      builder: (context) => Post(postid: postid, posttitle: posttitle),
                     ),
                   )
                 },
                 child: Container(
                   height: 190.0,
+                  width: 260.0,
                   margin: const EdgeInsets.only(left: 5.0, right: 5.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
@@ -67,8 +68,7 @@ class HorizontalPosts extends StatelessWidget {
                               color: Color.fromARGB(255, 222, 205, 252),
                             ),
                           ),
-                          errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
+                          errorWidget: (context, url, error) => const Icon(Icons.error),
                         ),
                       ),
                       Positioned.fill(
@@ -85,7 +85,6 @@ class HorizontalPosts extends StatelessWidget {
                               style: const TextStyle(
                                 color: Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 18.0,
-                                fontFamily: 'OpenSans',
                                 fontWeight: FontWeight.bold,
                               ),
                               textAlign: TextAlign.center,
@@ -93,6 +92,35 @@ class HorizontalPosts extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (hasSources)
+                        Positioned(
+                          bottom: 8.0,
+                          left: 8.0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0, vertical: 3.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(220),
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.verified,
+                                    size: 12.0, color: Color(0xfff7770f)),
+                                SizedBox(width: 3.0),
+                                Text(
+                                  'Sources cited',
+                                  style: TextStyle(
+                                    fontSize: 10.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -100,9 +128,8 @@ class HorizontalPosts extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(
-          height: 30.0,
-        ),
+        if (categoryName.isNotEmpty)
+          const SizedBox(height: 30.0),
       ],
     );
   }

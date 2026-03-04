@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import '../pages/categories.dart';
+import 'package:provider/provider.dart';
+import '../../models/user.dart';
+import '../pages/home.dart';
 import '../pages/search.dart';
-import '../pages/about.dart';
+import '../pages/bookmarks.dart';
+import '../pages/liked_posts.dart';
 import '../pages/login.dart';
+import '../pages/account.dart';
 
 class Bottombar extends StatefulWidget {
   final int currentIndex;
@@ -26,31 +30,31 @@ class _BottombarState extends State<Bottombar> {
     setState(() {
       currentindex = index;
     });
-    if (index == 0) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const Categories(),
-        ),
-      );
-    } else if (index == 1) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const Search(),
-        ),
-      );
-    } else if (index == 2) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const About(),
-        ),
-      );
-    } else if (index == 3) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const Login(),
-        ),
-      );
+    Widget page;
+    switch (index) {
+      case 0:
+        page = const Home();
+        break;
+      case 1:
+        page = const Search();
+        break;
+      case 2:
+        page = const Bookmarks();
+        break;
+      case 3:
+        page = const LikedPosts();
+        break;
+      case 4:
+        final isLoggedIn =
+            Provider.of<UserState>(context, listen: false).isLoggedIn;
+        page = isLoggedIn ? const Account() : const Login();
+        break;
+      default:
+        return;
     }
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => page),
+    );
   }
 
   @override
@@ -58,8 +62,8 @@ class _BottombarState extends State<Bottombar> {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       backgroundColor: const Color(0xfff7770f),
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
@@ -70,8 +74,12 @@ class _BottombarState extends State<Bottombar> {
           label: 'Search',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.question_mark),
-          label: 'About',
+          icon: Icon(Icons.bookmark),
+          label: 'Saved',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.favorite),
+          label: 'Liked',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person),

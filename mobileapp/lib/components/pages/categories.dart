@@ -13,27 +13,26 @@ class Categories extends StatefulWidget {
 }
 
 class _CategoriesState extends State<Categories> {
-  Future<Map<String, List<dynamic>>> fetchPosts() async {
-    const String postsapiurl =
-        '${postsApi}2,3,4,5,6,7,8,9,10,11,12&per_page=50';
-    final response = await http.get(Uri.parse(postsapiurl));
-    if (response.statusCode == 200) {
-      final List<dynamic> posts = json.decode(response.body);
-      Map<String, List<Map<String, dynamic>>> categorizedPosts = {};
-      for (var post in posts) {
-        int categoryid = post['categories'][0];
-        String categoryName = 'category_$categoryid';
-        if (!categorizedPosts.containsKey(categoryName)) {
-          categorizedPosts[categoryName] = [];
-        }
-        categorizedPosts[categoryName]!.add(post);
-      }
+  static const List<int> _categoryIds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-      return categorizedPosts;
-    } else {
-      throw Exception(
-          'Failed to fetch categories. Status code: ${response.statusCode}');
+  Future<List<dynamic>> _fetchPostsForCategory(int categoryId) async {
+    final url = '$postsApi$categoryId&per_page=10';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
     }
+    return [];
+  }
+
+  Future<Map<String, List<dynamic>>> fetchPosts() async {
+    final results = await Future.wait(
+      _categoryIds.map((id) => _fetchPostsForCategory(id)),
+    );
+    final Map<String, List<dynamic>> categorizedPosts = {};
+    for (int i = 0; i < _categoryIds.length; i++) {
+      categorizedPosts['category_${_categoryIds[i]}'] = results[i];
+    }
+    return categorizedPosts;
   }
 
   @override

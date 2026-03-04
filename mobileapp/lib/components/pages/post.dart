@@ -3,9 +3,17 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/apis.dart';
+import '../../models/user.dart';
+import '../../models/bookmarks.dart';
+import '../../models/reading_history.dart';
 import '../common/appbar.dart';
 import '../common/bottombar.dart';
+import 'login.dart';
+import 'disclaimer.dart';
 
 class Post extends StatefulWidget {
   const Post({super.key, required this.postid, required this.posttitle});
@@ -17,16 +25,24 @@ class Post extends StatefulWidget {
 }
 
 class _PostState extends State<Post> {
-  late int postid; 
+  late int postid;
   late String posttitle;
-  late String likes = '0';
-  late String dislikes = '0';
-  late String comments = '0';
-  late bool likedIcon = false;
-
   late Future<dynamic> postFuture;
+  bool likedIcon = false;
+  bool _isBookmarked = false;
+  String likesCount = '0';
+  String? _postLink;
+  double _fontSize = 16.0;
+  bool _historyRecorded = false;
 
-  _PostState();
+  // Comments state
+  final List<Map<String, dynamic>> _comments = [];
+  bool _loadingComments = false;
+  bool _hasMoreComments = true;
+  int _commentsPage = 1;
+  String _commentsCount = '0';
+  final TextEditingController _commentController = TextEditingController();
+  bool _postingComment = false;
 
   @override
   void initState() {
@@ -34,6 +50,16 @@ class _PostState extends State<Post> {
     postid = widget.postid;
     posttitle = widget.posttitle;
     postFuture = fetchpost();
+    _checkIfLiked();
+    _checkBookmark();
+    _loadComments();
+    _loadFontSize();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
   }
 
   Future<dynamic> fetchpost() async {
@@ -42,55 +68,291 @@ class _PostState extends State<Post> {
 
     if (response.statusCode == 200) {
       final post = json.decode(response.body);
-      setState(() {});
       return post;
     } else {
       throw Exception(
-        'Failed to fetch posts. Status code: ${response.statusCode}',
+        'Failed to fetch post. Status code: ${response.statusCode}',
       );
     }
   }
 
-  Future<dynamic> addLike() async {
-    final Map<String, String> data = {
-      'addlike': '1',
-      'postid': postid.toString(),
-      'userid': '1',
-    };
+  Future<void> _checkIfLiked() async {
+    final userState = Provider.of<UserState>(context, listen: false);
+    if (!userState.isLoggedIn || userState.token == null) return;
 
-    final response = await http.post(
-      Uri.parse(ajaxApi),
-      headers: <String, String>{
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: data,
-    );
-
-    if (!mounted) return;
-
-    if (response.statusCode == 200) {
-      final responseData = response.body;
-      if (responseData.isNotEmpty) {
-        final likeresponse = jsonDecode(responseData);
-        if (likeresponse['status'] == 1) {
-          debugPrint('log: $likeresponse');
+    try {
+      final response = await http.get(
+        Uri.parse(likedCheckApi(postid)),
+        headers: {'Authorization': 'Bearer ${userState.token}'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            likedIcon = data['liked'] == true;
+          });
         }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _checkBookmark() async {
+    final bookmarked = await BookmarkService.isBookmarked(postid);
+    if (mounted) {
+      setState(() {
+        _isBookmarked = bookmarked;
+      });
+    }
+  }
+
+  Future<void> _loadFontSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getDouble('post_font_size');
+    if (saved != null && mounted) {
+      setState(() {
+        _fontSize = saved;
+      });
+    }
+  }
+
+  Future<void> _saveFontSize(double size) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('post_font_size', size);
+  }
+
+  Future<void> _toggleLike() async {
+    final userState = Provider.of<UserState>(context, listen: false);
+    if (!userState.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please log in to like posts.'),
+          action: SnackBarAction(
+            label: 'Login',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const Login()),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Optimistic update
+    final wasLiked = likedIcon;
+    final previousCount = likesCount;
+    final currentCount = int.tryParse(likesCount) ?? 0;
+
+    setState(() {
+      likedIcon = !wasLiked;
+      likesCount = wasLiked ? '${currentCount > 0 ? currentCount - 1 : 0}' : '${currentCount + 1}';
+    });
+
+    try {
+      final url = likeApi(postid);
+      final headers = {
+        'Authorization': 'Bearer ${userState.token}',
+        'Content-Type': 'application/json',
+      };
+
+      http.Response response;
+      if (wasLiked) {
+        response = await http.delete(Uri.parse(url), headers: headers);
       } else {
+        response = await http.post(Uri.parse(url), headers: headers);
+      }
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          likesCount = data['likes'] ?? likesCount;
+        });
+      } else {
+        // Revert on failure
+        setState(() {
+          likedIcon = wasLiked;
+          likesCount = previousCount;
+        });
+      }
+    } catch (_) {
+      if (!mounted) return;
+      // Revert on error
+      setState(() {
+        likedIcon = wasLiked;
+        likesCount = previousCount;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update like. Please try again.')),
+      );
+    }
+  }
+
+  Future<void> _toggleBookmark() async {
+    await BookmarkService.toggleBookmark(postid);
+    final bookmarked = await BookmarkService.isBookmarked(postid);
+    if (mounted) {
+      setState(() {
+        _isBookmarked = bookmarked;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(bookmarked ? 'Bookmarked' : 'Removed from bookmarks'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  void _sharePost(BuildContext context) {
+    final url = _postLink ?? '$baseUrl/?p=$postid';
+    final box = context.findRenderObject() as RenderBox?;
+    Share.share(
+      '$posttitle\n$url',
+      sharePositionOrigin: box != null ? box.localToGlobal(Offset.zero) & box.size : Rect.zero,
+    );
+  }
+
+  // Comments methods
+  Future<void> _loadComments() async {
+    if (_loadingComments || !_hasMoreComments) return;
+
+    setState(() {
+      _loadingComments = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(commentsApi(postid, page: _commentsPage)),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          for (final comment in data) {
+            _comments.add({
+              'id': comment['id'],
+              'author_name': comment['author_name'] ?? 'Anonymous',
+              'avatar_url': comment['author_avatar_urls']?['48'] ?? '',
+              'date': comment['date'] ?? '',
+              'content': comment['content']?['rendered'] ?? '',
+            });
+          }
+          _commentsPage++;
+          _hasMoreComments = data.length >= 10;
+          _loadingComments = false;
+        });
+      } else {
+        setState(() {
+          _loadingComments = false;
+          _hasMoreComments = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingComments = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _postComment() async {
+    final userState = Provider.of<UserState>(context, listen: false);
+    if (!userState.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please log in to comment.'),
+          action: SnackBarAction(
+            label: 'Login',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const Login()),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final content = _commentController.text.trim();
+    if (content.isEmpty) return;
+
+    setState(() {
+      _postingComment = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(addCommentApi(postid)),
+        headers: {
+          'Authorization': 'Bearer ${userState.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'content': content}),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final comment = data['comment'];
+        setState(() {
+          _comments.insert(0, {
+            'id': comment['id'],
+            'author_name': comment['author_name'] ?? userState.username ?? 'You',
+            'avatar_url': comment['author_avatar_urls']?['48'] ?? userState.profileImageUrl ?? '',
+            'date': comment['date'] ?? DateTime.now().toIso8601String(),
+            'content': comment['content']?['rendered'] ?? content,
+          });
+          _commentsCount = '${(int.tryParse(_commentsCount) ?? 0) + 1}';
+          _postingComment = false;
+        });
+        _commentController.clear();
+        FocusScope.of(context).unfocus();
+      } else {
+        setState(() {
+          _postingComment = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No data returned from API')),
+          const SnackBar(content: Text('Failed to post comment.')),
         );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to like')),
-      );
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _postingComment = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Connection error. Please try again.')),
+        );
+      }
     }
   }
 
-  Future<dynamic> adddisLike() async {}
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      final now = DateTime.now();
+      final diff = now.difference(date);
+
+      if (diff.inMinutes < 1) return 'Just now';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+      if (diff.inHours < 24) return '${diff.inHours}h ago';
+      if (diff.inDays < 7) return '${diff.inDays}d ago';
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (_) {
+      return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final userState = Provider.of<UserState>(context);
+
     return Scaffold(
       appBar: Appbar(title: widget.posttitle),
       body: SafeArea(
@@ -112,151 +374,548 @@ class _PostState extends State<Post> {
                       ),
                     );
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(30.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, size: 48.0, color: Color(0xfff7770f)),
+                            const SizedBox(height: 16.0),
+                            const Text(
+                              'Unable to load content. Please check your connection and try again.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16.0),
+                            ),
+                            const SizedBox(height: 16.0),
+                            ElevatedButton(
+                              onPressed: () => setState(() => postFuture = fetchpost()),
+                              style: const ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(Color(0xfff7770f)),
+                                foregroundColor: WidgetStatePropertyAll(Colors.white),
+                              ),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   } else {
                     final post = snapshot.data;
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: post['featured_image_url'] ?? '',
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 260.0,
-                              placeholder: (context, url) => const Center(
+                    // Store the canonical link for sharing
+                    _postLink ??= post['link'];
+                    // Set initial counts from post data (only if not yet modified by user)
+                    if (likesCount == '0' && post['likes'] != null && post['likes'] != '0') {
+                      likesCount = post['likes'];
+                    }
+                    _commentsCount = post['comments_count'] ?? '0';
+                    final sources = post['sources'] ?? '';
+                    // Record reading history once
+                    if (!_historyRecorded) {
+                      _historyRecorded = true;
+                      ReadingHistoryService.addEntry(
+                        postId: postid,
+                        title: posttitle,
+                        thumbnailUrl: post['featured_image_url'] ?? '',
+                      );
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: post['featured_image_url'] ?? '',
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 260.0,
+                            placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xfff7770f),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => const Icon(Icons.error),
+                          ),
+                          // Font size controls
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text('Aa', style: TextStyle(fontSize: 14.0, color: Colors.grey[600])),
+                                const SizedBox(width: 8.0),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (_fontSize > 12.0) {
+                                      setState(() {
+                                        _fontSize -= 2.0;
+                                      });
+                                      _saveFontSize(_fontSize);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6.0),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey[300]!),
+                                      borderRadius: BorderRadius.circular(6.0),
+                                    ),
+                                    child: const Icon(Icons.remove, size: 18.0, color: Color(0xfff7770f)),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                  child: Text(
+                                    '${_fontSize.toInt()}',
+                                    style: const TextStyle(
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (_fontSize < 24.0) {
+                                      setState(() {
+                                        _fontSize += 2.0;
+                                      });
+                                      _saveFontSize(_fontSize);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6.0),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey[300]!),
+                                      borderRadius: BorderRadius.circular(6.0),
+                                    ),
+                                    child: const Icon(Icons.add, size: 18.0, color: Color(0xfff7770f)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Html(
+                            data: post['content']['rendered'] ?? '',
+                            style: {
+                              'body': Style(
+                                fontSize: FontSize(_fontSize),
+                              ),
+                              'p': Style(
+                                fontSize: FontSize(_fontSize),
+                                lineHeight: const LineHeight(1.6),
+                              ),
+                              'li': Style(
+                                fontSize: FontSize(_fontSize),
+                              ),
+                              'h2': Style(
+                                fontSize: FontSize(_fontSize + 6.0),
+                              ),
+                              'h3': Style(
+                                fontSize: FontSize(_fontSize + 4.0),
+                              ),
+                            },
+                          ),
+                          // Source citation block
+                          if (sources.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(top: 10.0),
+                              padding: const EdgeInsets.all(12.0),
+                              decoration: BoxDecoration(
+                                border: const Border(
+                                  left: BorderSide(
+                                    color: Color(0xfff7770f),
+                                    width: 4.0,
+                                  ),
+                                ),
+                                color: Colors.orange[50],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Source',
+                                    style: TextStyle(
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    sources,
+                                    style: const TextStyle(
+                                      fontSize: 14.0,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          // Medical disclaimer footer
+                          Container(
+                            margin: const EdgeInsets.only(top: 12.0),
+                            padding: const EdgeInsets.all(12.0),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.health_and_safety, size: 18.0, color: Colors.grey[500]),
+                                const SizedBox(width: 8.0),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => const Disclaimer()),
+                                    ),
+                                    child: Text.rich(
+                                      TextSpan(
+                                        text: 'For informational purposes only. Consult a healthcare professional before acting on any information. ',
+                                        style: TextStyle(
+                                          fontSize: 12.0,
+                                          color: Colors.grey[600],
+                                          height: 1.4,
+                                        ),
+                                        children: const [
+                                          TextSpan(
+                                            text: 'Read full disclaimer',
+                                            style: TextStyle(
+                                              fontSize: 12.0,
+                                              color: Color(0xfff7770f),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 15.0),
+                          const Divider(
+                            height: 2.0,
+                            color: Colors.black26,
+                          ),
+                          const SizedBox(height: 15.0),
+                          // Actions row
+                          Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: _toggleLike,
+                                    child: Row(
+                                      children: [
+                                        likedIcon
+                                            ? const Icon(
+                                                Icons.thumb_up,
+                                                size: 28.0,
+                                                color: Color(0xfff7770f),
+                                              )
+                                            : const Icon(
+                                                Icons.thumb_up_alt_outlined,
+                                                size: 28.0,
+                                                color: Color(0xfff7770f),
+                                              ),
+                                        const SizedBox(width: 5.0),
+                                        Text(
+                                          likesCount,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 18.0,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20.0),
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          post['dislikes'] ?? '0',
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 18.0,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5.0),
+                                        const Icon(
+                                          Icons.thumb_down_alt_outlined,
+                                          size: 28.0,
+                                          color: Color(0xfff7770f),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20.0),
+                                  Builder(
+                                    builder: (shareContext) => GestureDetector(
+                                      onTap: () => _sharePost(shareContext),
+                                      child: const Icon(
+                                        Icons.share_outlined,
+                                        size: 28.0,
+                                        color: Color(0xfff7770f),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20.0),
+                                  GestureDetector(
+                                    onTap: _toggleBookmark,
+                                    child: Icon(
+                                      _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                      size: 28.0,
+                                      color: const Color(0xfff7770f),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    _commentsCount,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5.0),
+                                  Text(
+                                    _commentsCount == '1' ? 'Comment' : 'Comments',
+                                    style: const TextStyle(
+                                      color: Color(0xfff7770f),
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 20.0),
+                          const Divider(height: 2.0, color: Colors.black12),
+                          const SizedBox(height: 15.0),
+
+                          // Comments section
+                          const Text(
+                            'Comments',
+                            style: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 12.0),
+
+                          // Comment input
+                          if (userState.isLoggedIn)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _commentController,
+                                    maxLines: 3,
+                                    minLines: 1,
+                                    decoration: InputDecoration(
+                                      hintText: 'Write a comment...',
+                                      hintStyle: TextStyle(color: Colors.grey[400]),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderSide: BorderSide(color: Colors.grey[300]!),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderSide: const BorderSide(color: Color(0xfff7770f)),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 12.0,
+                                        vertical: 10.0,
+                                      ),
+                                    ),
+                                    style: const TextStyle(fontSize: 15.0),
+                                  ),
+                                ),
+                                const SizedBox(width: 8.0),
+                                SizedBox(
+                                  height: 44.0,
+                                  child: ElevatedButton(
+                                    onPressed: _postingComment ? null : _postComment,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xfff7770f),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12.0),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                    ),
+                                    child: _postingComment
+                                        ? const SizedBox(
+                                            width: 18.0,
+                                            height: 18.0,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2.0,
+                                            ),
+                                          )
+                                        : const Text('Post'),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            GestureDetector(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const Login()),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(12.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.login, size: 18.0, color: Color(0xfff7770f)),
+                                    SizedBox(width: 8.0),
+                                    Text(
+                                      'Log in to comment',
+                                      style: TextStyle(
+                                        color: Color(0xfff7770f),
+                                        fontSize: 15.0,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 15.0),
+
+                          // Comments list
+                          if (_comments.isEmpty && !_loadingComments)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20.0),
+                              child: Center(
+                                child: Text(
+                                  'No comments yet. Be the first to comment!',
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          ..._comments.map((comment) => Container(
+                                margin: const EdgeInsets.only(bottom: 12.0),
+                                padding: const EdgeInsets.all(12.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 16.0,
+                                          backgroundColor: const Color(0xfff7770f),
+                                          backgroundImage: (comment['avatar_url'] != null && (comment['avatar_url'] as String).isNotEmpty) ? NetworkImage(comment['avatar_url']) : null,
+                                          child: (comment['avatar_url'] == null || (comment['avatar_url'] as String).isEmpty)
+                                              ? Text(
+                                                  (comment['author_name'] ?? 'A').substring(0, 1).toUpperCase(),
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 14.0,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                )
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 10.0),
+                                        Expanded(
+                                          child: Text(
+                                            comment['author_name'] ?? 'Anonymous',
+                                            style: const TextStyle(
+                                              fontSize: 14.0,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          _formatDate(comment['date'] ?? ''),
+                                          style: TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6.0),
+                                    Html(
+                                      data: comment['content'] ?? '',
+                                      style: {
+                                        'body': Style(
+                                          margin: Margins.zero,
+                                          padding: HtmlPaddings.zero,
+                                          fontSize: FontSize(14.0),
+                                          color: Colors.black87,
+                                        ),
+                                        'p': Style(
+                                          margin: Margins.zero,
+                                        ),
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              )),
+
+                          // Loading indicator
+                          if (_loadingComments)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 15.0),
+                              child: Center(
                                 child: CircularProgressIndicator(
                                   color: Color(0xfff7770f),
                                 ),
                               ),
-                              errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
                             ),
-                            Html(
-                              data: '''
-                                ${post['content']['rendered'] ?? ''}
-                                <p style='font-weight: bold; font-size: 20px;'>Source: ${post['sources'] ?? ''}</p>
-                                '''
-                            ),
-                            const SizedBox(
-                              height: 5.0,
-                            ),
-                            const Divider(
-                              height: 2.0,
-                              color: Colors.black26,
-                            ),
-                            const SizedBox(
-                              height: 30.0,
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        addLike();
-                                      },
-                                      child: Row(
-                                        children: [
-                                          likedIcon
-                                              ? const Icon(
-                                                  Icons.thumb_up,
-                                                  size: 28.0,
-                                                  color: Color(0xfff7770f),
-                                                )
-                                              : const Icon(
-                                                  Icons.thumb_up_alt_outlined,
-                                                  size: 28.0,
-                                                  color: Color(0xfff7770f),
-                                                ),
-                                          const SizedBox(
-                                            width: 5.0,
-                                          ),
-                                          Text(
-                                            post['likes'],
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+
+                          // Load more button
+                          if (_hasMoreComments && !_loadingComments && _comments.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 15.0),
+                              child: Center(
+                                child: TextButton(
+                                  onPressed: _loadComments,
+                                  child: const Text(
+                                    'Load more comments',
+                                    style: TextStyle(
+                                      color: Color(0xfff7770f),
+                                      fontSize: 15.0,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                    const SizedBox(
-                                      width: 20.0,
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        adddisLike();
-                                      },
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            post['dislikes'],
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 5.0,
-                                          ),
-                                          const Icon(
-                                            Icons.thumb_down_alt_outlined,
-                                            size: 28.0,
-                                            color: Color(0xfff7770f),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {},
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            post['comments_count'],
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 5.0,
-                                          ),
-                                          Text(
-                                            post['comments_count'] == '1'
-                                                ? 'Comment'
-                                                : 'Comments',
-                                            style: const TextStyle(
-                                              color: Color(0xfff7770f),
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
+                              ),
                             ),
-                            const SizedBox(
-                              height: 30.0,
-                            ),
-                          ],
-                        ),
+
+                          const SizedBox(height: 15.0),
+                        ],
                       ),
                     );
                   }
