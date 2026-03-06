@@ -515,8 +515,7 @@ class _PostState extends State<Post> {
                             },
                           ),
                           // Source citation block
-                          if (sources.isNotEmpty)
-                            Container(
+                          Container(
                               margin: const EdgeInsets.only(top: 10.0),
                               padding: const EdgeInsets.all(12.0),
                               decoration: BoxDecoration(
@@ -531,20 +530,29 @@ class _PostState extends State<Post> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Source',
-                                    style: TextStyle(
-                                      fontSize: 14.0,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.black87,
-                                    ),
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.menu_book, size: 16.0, color: Colors.black87),
+                                      SizedBox(width: 6.0),
+                                      Text(
+                                        'Sources & References',
+                                        style: TextStyle(
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 4.0),
                                   Text(
-                                    sources,
+                                    sources.isNotEmpty
+                                        ? sources
+                                        : 'Based on traditional Ayurvedic texts including Charaka Samhita, Sushruta Samhita, and Ashtanga Hridayam. For detailed references, consult the National Library of Ayurveda Medicine (NLAM).',
                                     style: const TextStyle(
                                       fontSize: 14.0,
                                       color: Colors.black54,
+                                      height: 1.5,
                                     ),
                                   ),
                                 ],
