@@ -10,6 +10,7 @@ const searchApi = "$baseUrl/wp-json/wp/v2/posts?search=";
 const signupApi = "$baseUrl/wp-json/aayurveda/v1/signup";
 const loginApi = "$baseUrl/wp-json/aayurveda/v1/login";
 const logoutApi = "$baseUrl/wp-json/aayurveda/v1/logout";
+const socialLoginApi = "$baseUrl/wp-json/aayurveda/v1/social-login";
 
 // Like endpoints
 String likeApi(int postId) => "$baseUrl/wp-json/aayurveda/v1/posts/$postId/like";
@@ -21,6 +22,13 @@ String commentsApi(int postId, {int page = 1, int perPage = 10}) =>
     "$baseUrl/wp-json/wp/v2/comments?post=$postId&per_page=$perPage&page=$page&order=desc";
 String addCommentApi(int postId) =>
     "$baseUrl/wp-json/aayurveda/v1/posts/$postId/comments";
+
+// Moderation endpoints
+String reportCommentApi(int commentId) =>
+    "$baseUrl/wp-json/aayurveda/v1/comments/$commentId/report";
+String blockUserApi(int userId) =>
+    "$baseUrl/wp-json/aayurveda/v1/users/$userId/block";
+const blockedUsersApi = "$baseUrl/wp-json/aayurveda/v1/user/blocked";
 
 // Profile endpoints
 const updateProfileApi = "$baseUrl/wp-json/aayurveda/v1/user/profile";

@@ -49,5 +49,29 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- Facebook SDK -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<!-- Replace 1260436432853011 with actual Facebook App ID -->
+					<string>fb1260436432853011</string>
+					<!-- Replace YOUR_GOOGLE_REVERSED_CLIENT_ID with value from GoogleService-Info.plist -->
+					<string>com.googleusercontent.apps.898013498394-otr672937ct09l18m1j2aj7ebomt46ef</string>
+				</array>
+			</dict>
+		</array>
+		<key>FacebookAppID</key>
+		<string>1260436432853011</string>
+		<key>FacebookClientToken</key>
+		<string>bbd02087c17ddcca9c7ab21c3c38b30a</string>
+		<key>FacebookDisplayName</key>
+		<string>Aayurveda</string>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>fbapi</string>
+			<string>fb-messenger-share-api</string>
+		</array>
 	</dict>
 </plist>

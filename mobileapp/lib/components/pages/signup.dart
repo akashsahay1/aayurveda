@@ -1,8 +1,14 @@
+import 'dart:io';
+import 'package:provider/provider.dart';
+import 'package:ayurveda/components/pages/account.dart';
 import 'package:ayurveda/components/pages/login.dart';
 import 'package:ayurveda/components/pages/privacy.dart';
+import 'package:ayurveda/components/pages/social_login_complete.dart';
 import 'package:ayurveda/components/pages/terms.dart';
 import 'package:ayurveda/constants/apis.dart';
 import 'package:ayurveda/constants/texts.dart';
+import 'package:ayurveda/models/user.dart';
+import 'package:ayurveda/services/social_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -26,6 +32,44 @@ class _SignupState extends State<Signup> {
   bool _obscureConfirmPassword = true;
   bool _acceptedPrivacy = false;
   bool _acceptedTerms = false;
+  bool _socialLoading = false;
+
+  Future<void> _handleSocialLogin(Future<SocialAuthResult> Function() signInMethod) async {
+    setState(() => _socialLoading = true);
+
+    final result = await signInMethod();
+
+    if (!mounted) return;
+    setState(() => _socialLoading = false);
+
+    if (result.success && result.userData != null) {
+      await Provider.of<UserState>(context, listen: false).login(result.userData!);
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const Account()),
+        (route) => false,
+      );
+    } else if (result.needsMoreInfo) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SocialLoginComplete(
+            provider: result.provider!,
+            providerId: result.providerId!,
+            email: result.email,
+            firstName: result.firstName,
+            lastName: result.lastName,
+            profileImageUrl: result.profileImageUrl,
+            needsEmail: result.needsEmail,
+            needsName: result.needsName,
+          ),
+        ),
+      );
+    } else if (result.errorMessage != null && result.errorMessage != 'Sign in cancelled.') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage!)),
+      );
+    }
+  }
 
   Future<void> _signup() async {
     if (_formKey.currentState!.validate()) {
@@ -48,7 +92,7 @@ class _SignupState extends State<Signup> {
           },
           body: jsonEncode({
             'fullname': fullName.text,
-            'username': emailField.text,
+            'email': emailField.text.trim(),
             'password': passwordField.text,
           }),
         );
@@ -297,14 +341,26 @@ class _SignupState extends State<Signup> {
                     ),
                   ),
                   const SizedBox(height: 10.0),
-                  TextField(
+                  TextFormField(
                     controller: emailField,
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email address is required';
+                      }
+                      final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                      if (!emailRegex.hasMatch(value)) {
+                        return 'Please enter a valid email address';
+                      }
+                      return null;
+                    },
                     decoration: const InputDecoration(
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 0, right: 10.0),
-                        child: Icon(Icons.person),
+                        child: Icon(Icons.email_outlined),
                       ),
-                      hintText: 'Username',
+                      hintText: 'Email Address',
                       contentPadding: EdgeInsets.symmetric(vertical: 10),
                       prefixIconConstraints:
                           BoxConstraints(minWidth: 0, minHeight: 0),
@@ -492,7 +548,84 @@ class _SignupState extends State<Signup> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 40.0),
+                  const SizedBox(height: 24.0),
+                  Row(
+                    children: [
+                      const Expanded(child: Divider(color: Colors.black26)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Text(
+                          'OR',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: Divider(color: Colors.black26)),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48.0,
+                    child: OutlinedButton.icon(
+                      onPressed: _socialLoading ? null : () => _handleSocialLogin(SocialAuthService.signInWithGoogle),
+                      icon: Image.asset('assets/images/google-icon.png', height: 20.0, width: 20.0, errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24.0)),
+                      label: const Text('Sign up with Google', style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black87,
+                        backgroundColor: Colors.white,
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10.0),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48.0,
+                    child: ElevatedButton.icon(
+                      onPressed: _socialLoading ? null : () => _handleSocialLogin(SocialAuthService.signInWithFacebook),
+                      icon: const Icon(Icons.facebook, size: 22.0),
+                      label: const Text('Sign up with Facebook', style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff1877F2),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10.0),
+                  if (Platform.isIOS)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48.0,
+                      child: ElevatedButton.icon(
+                        onPressed: _socialLoading ? null : () => _handleSocialLogin(SocialAuthService.signInWithApple),
+                        icon: const Icon(Icons.apple, size: 22.0),
+                        label: const Text('Sign up with Apple', style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+                        ),
+                      ),
+                    ),
+                  if (Platform.isIOS) const SizedBox(height: 10.0),
+                  if (_socialLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Center(
+                        child: SizedBox(
+                          width: 24.0,
+                          height: 24.0,
+                          child: CircularProgressIndicator(color: Color(0xfff7770f), strokeWidth: 2.0),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 24.0),
                   Row(
                     children: [
                       const Text(

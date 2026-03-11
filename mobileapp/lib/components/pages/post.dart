@@ -43,6 +43,7 @@ class _PostState extends State<Post> {
   String _commentsCount = '0';
   final TextEditingController _commentController = TextEditingController();
   bool _postingComment = false;
+  final Set<int> _blockedUserIds = {};
 
   @override
   void initState() {
@@ -52,6 +53,7 @@ class _PostState extends State<Post> {
     postFuture = fetchpost();
     _checkIfLiked();
     _checkBookmark();
+    _loadBlockedUsers();
     _loadComments();
     _loadFontSize();
   }
@@ -233,8 +235,11 @@ class _PostState extends State<Post> {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
           for (final comment in data) {
+            final authorId = comment['author'] as int? ?? 0;
+            if (_blockedUserIds.contains(authorId)) continue;
             _comments.add({
               'id': comment['id'],
+              'author_id': authorId,
               'author_name': comment['author_name'] ?? 'Anonymous',
               'avatar_url': comment['author_avatar_urls']?['48'] ?? '',
               'date': comment['date'] ?? '',
@@ -300,11 +305,15 @@ class _PostState extends State<Post> {
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         final comment = data['comment'];
+        final avatarUrls = comment['author_avatar_urls'];
+        final avatarUrl = avatarUrls != null ? (avatarUrls['48'] ?? avatarUrls[48] ?? '') : '';
+        final displayName = comment['author_name'] ?? '${userState.firstName ?? ''} ${userState.lastName ?? ''}'.trim();
         setState(() {
           _comments.insert(0, {
             'id': comment['id'],
-            'author_name': comment['author_name'] ?? userState.username ?? 'You',
-            'avatar_url': comment['author_avatar_urls']?['48'] ?? userState.profileImageUrl ?? '',
+            'author_id': userState.userId ?? 0,
+            'author_name': displayName.isNotEmpty ? displayName : 'You',
+            'avatar_url': avatarUrl.isNotEmpty ? avatarUrl : (userState.profileImageUrl ?? ''),
             'date': comment['date'] ?? DateTime.now().toIso8601String(),
             'content': comment['content']?['rendered'] ?? content,
           });
@@ -328,6 +337,129 @@ class _PostState extends State<Post> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Connection error. Please try again.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadBlockedUsers() async {
+    final userState = Provider.of<UserState>(context, listen: false);
+    if (!userState.isLoggedIn || userState.token == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse(blockedUsersApi),
+        headers: {'Authorization': 'Bearer ${userState.token}'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> ids = data['blocked_user_ids'] ?? [];
+        if (mounted) {
+          setState(() {
+            _blockedUserIds.addAll(ids.map((e) => e as int));
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _reportComment(int commentId) async {
+    final userState = Provider.of<UserState>(context, listen: false);
+    if (!userState.isLoggedIn) return;
+
+    final reasons = ['Inappropriate content', 'Spam', 'Harassment', 'Misinformation', 'Other'];
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Report Comment'),
+        children: reasons.map((r) => SimpleDialogOption(
+          onPressed: () => Navigator.pop(ctx, r),
+          child: Text(r, style: const TextStyle(fontSize: 15.0)),
+        )).toList(),
+      ),
+    );
+
+    if (reason == null || !mounted) return;
+
+    try {
+      final response = await http.post(
+        Uri.parse(reportCommentApi(commentId)),
+        headers: {
+          'Authorization': 'Bearer ${userState.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'reason': reason}),
+      );
+
+      if (!mounted) return;
+
+      final data = jsonDecode(response.body);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(data['message'] ?? 'Comment reported.')),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to report. Please try again.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _blockUser(int userId, String authorName) async {
+    final userState = Provider.of<UserState>(context, listen: false);
+    if (!userState.isLoggedIn) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hide This User'),
+        content: Text(
+          'Hide comments from $authorName? Their comments will be removed from your feed. Our team will also be notified to review their content.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xfff7770f),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Hide'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final response = await http.post(
+        Uri.parse(blockUserApi(userId)),
+        headers: {
+          'Authorization': 'Bearer ${userState.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _blockedUserIds.add(userId);
+          _comments.removeWhere((c) => c['author_id'] == userId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Comments from $authorName are now hidden.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to block user. Please try again.')),
         );
       }
     }
@@ -826,7 +958,10 @@ class _PostState extends State<Post> {
                               ),
                             ),
 
-                          ..._comments.map((comment) => Container(
+                          ..._comments.map((comment) {
+                            final int commentAuthorId = comment['author_id'] ?? 0;
+                            final bool isOwnComment = userState.isLoggedIn && commentAuthorId == userState.userId;
+                            return Container(
                                 margin: const EdgeInsets.only(bottom: 12.0),
                                 padding: const EdgeInsets.all(12.0),
                                 decoration: BoxDecoration(
@@ -871,6 +1006,41 @@ class _PostState extends State<Post> {
                                             color: Colors.grey[500],
                                           ),
                                         ),
+                                        if (userState.isLoggedIn && !isOwnComment && commentAuthorId > 0)
+                                          PopupMenuButton<String>(
+                                            icon: Icon(Icons.more_vert, size: 18.0, color: Colors.grey[400]),
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                            itemBuilder: (_) => [
+                                              const PopupMenuItem(
+                                                value: 'report',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(Icons.flag_outlined, size: 18.0, color: Colors.orange),
+                                                    SizedBox(width: 8.0),
+                                                    Text('Report Comment'),
+                                                  ],
+                                                ),
+                                              ),
+                                              const PopupMenuItem(
+                                                value: 'block',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(Icons.visibility_off, size: 18.0, color: Colors.red),
+                                                    SizedBox(width: 8.0),
+                                                    Text('Hide This User'),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                            onSelected: (value) {
+                                              if (value == 'report') {
+                                                _reportComment(comment['id'] as int);
+                                              } else if (value == 'block') {
+                                                _blockUser(commentAuthorId, comment['author_name'] ?? 'this user');
+                                              }
+                                            },
+                                          ),
                                       ],
                                     ),
                                     const SizedBox(height: 6.0),
@@ -890,7 +1060,8 @@ class _PostState extends State<Post> {
                                     ),
                                   ],
                                 ),
-                              )),
+                              );
+                          }),
 
                           // Loading indicator
                           if (_loadingComments)
