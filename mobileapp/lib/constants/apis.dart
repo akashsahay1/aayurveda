@@ -23,6 +23,12 @@ String commentsApi(int postId, {int page = 1, int perPage = 10}) =>
 String addCommentApi(int postId) =>
     "$baseUrl/wp-json/aayurveda/v1/posts/$postId/comments";
 
+// Comment management endpoints
+String editCommentApi(int commentId) =>
+    "$baseUrl/wp-json/aayurveda/v1/comments/$commentId";
+String deleteCommentApi(int commentId) =>
+    "$baseUrl/wp-json/aayurveda/v1/comments/$commentId";
+
 // Moderation endpoints
 String reportCommentApi(int commentId) =>
     "$baseUrl/wp-json/aayurveda/v1/comments/$commentId/report";

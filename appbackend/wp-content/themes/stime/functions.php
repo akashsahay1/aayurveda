@@ -333,6 +333,20 @@ add_action('rest_api_init', function() {
 		'permission_callback' => 'aayurveda_require_auth',
 	));
 
+	// PUT /wp-json/aayurveda/v1/comments/{id}
+	register_rest_route('aayurveda/v1', '/comments/(?P<id>\d+)', array(
+		'methods' => 'PUT',
+		'callback' => 'aayurveda_edit_comment',
+		'permission_callback' => 'aayurveda_require_auth',
+	));
+
+	// DELETE /wp-json/aayurveda/v1/comments/{id}
+	register_rest_route('aayurveda/v1', '/comments/(?P<id>\d+)', array(
+		'methods' => 'DELETE',
+		'callback' => 'aayurveda_delete_comment',
+		'permission_callback' => 'aayurveda_require_auth',
+	));
+
 	// PUT /wp-json/aayurveda/v1/user/profile
 	register_rest_route('aayurveda/v1', '/user/profile', array(
 		'methods' => 'PUT',
@@ -640,6 +654,62 @@ function aayurveda_add_comment($request) {
 			'content' => array('rendered' => $comment->comment_content),
 		),
 	), 201);
+}
+
+function aayurveda_edit_comment($request) {
+	$user = aayurveda_get_user_from_token($request);
+	$comment_id = absint($request['id']);
+	$comment = get_comment($comment_id);
+
+	if (!$comment) {
+		return new WP_REST_Response(array('status' => 0, 'message' => 'Comment not found.'), 404);
+	}
+
+	if ((int) $comment->user_id !== $user->ID) {
+		return new WP_REST_Response(array('status' => 0, 'message' => 'You can only edit your own comments.'), 403);
+	}
+
+	$params = $request->get_json_params();
+	if (empty($params)) {
+		$params = $request->get_body_params();
+	}
+	$content = sanitize_textarea_field($params['content'] ?? '');
+
+	if (empty($content)) {
+		return new WP_REST_Response(array('status' => 0, 'message' => 'Comment content is required.'), 400);
+	}
+
+	wp_update_comment(array(
+		'comment_ID' => $comment_id,
+		'comment_content' => $content,
+	));
+
+	return new WP_REST_Response(array(
+		'status' => 1,
+		'message' => 'Comment updated.',
+		'content' => $content,
+	), 200);
+}
+
+function aayurveda_delete_comment($request) {
+	$user = aayurveda_get_user_from_token($request);
+	$comment_id = absint($request['id']);
+	$comment = get_comment($comment_id);
+
+	if (!$comment) {
+		return new WP_REST_Response(array('status' => 0, 'message' => 'Comment not found.'), 404);
+	}
+
+	if ((int) $comment->user_id !== $user->ID) {
+		return new WP_REST_Response(array('status' => 0, 'message' => 'You can only delete your own comments.'), 403);
+	}
+
+	wp_delete_comment($comment_id, true);
+
+	return new WP_REST_Response(array(
+		'status' => 1,
+		'message' => 'Comment deleted.',
+	), 200);
 }
 
 // ============================================================
@@ -999,8 +1069,18 @@ function aayurveda_get_blocked_users($request) {
 		$wpdb->prepare("SELECT blocked_id FROM $table_name WHERE blocker_id = %d", $user->ID)
 	);
 
+	$blocked_users = array();
+	foreach ($blocked_ids as $bid) {
+		$blocked_user = get_userdata(intval($bid));
+		$blocked_users[] = array(
+			'id' => intval($bid),
+			'display_name' => $blocked_user ? $blocked_user->display_name : 'User ' . $bid,
+		);
+	}
+
 	return new WP_REST_Response(array(
 		'blocked_user_ids' => array_map('intval', $blocked_ids),
+		'blocked_users' => $blocked_users,
 	), 200);
 }
 

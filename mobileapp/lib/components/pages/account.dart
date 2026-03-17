@@ -13,6 +13,7 @@ import 'login.dart';
 import 'edit_profile.dart';
 import 'home.dart';
 import 'reading_history.dart';
+import 'hidden_users.dart';
 
 class Account extends StatelessWidget {
   const Account({super.key});
@@ -189,6 +190,15 @@ class Account extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (_) => const ReadingHistory()),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.person_off_outlined, color: Color(0xfff7770f)),
+                title: const Text('Hidden Users'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HiddenUsers()),
                 ),
               ),
               ListTile(

@@ -71,6 +71,13 @@ class _SignupState extends State<Signup> {
     }
   }
 
+  Widget _socialIconButton(String asset, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: _socialLoading ? null : onTap,
+      child: Image.asset(asset, width: 40.0, height: 40.0, fit: BoxFit.contain),
+    );
+  }
+
   Future<void> _signup() async {
     if (_formKey.currentState!.validate()) {
       if (passwordField.text != cpasswordField.text) {
@@ -567,53 +574,18 @@ class _SignupState extends State<Signup> {
                     ],
                   ),
                   const SizedBox(height: 16.0),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48.0,
-                    child: OutlinedButton.icon(
-                      onPressed: _socialLoading ? null : () => _handleSocialLogin(SocialAuthService.signInWithGoogle),
-                      icon: Image.asset('assets/images/google-icon.png', height: 20.0, width: 20.0, errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24.0)),
-                      label: const Text('Sign up with Google', style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600)),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.black87,
-                        backgroundColor: Colors.white,
-                        side: BorderSide(color: Colors.grey[300]!),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-                      ),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _socialIconButton('assets/images/google.png', () => _handleSocialLogin(SocialAuthService.signInWithGoogle)),
+                      const SizedBox(width: 20.0),
+                      _socialIconButton('assets/images/facebook.png', () => _handleSocialLogin(SocialAuthService.signInWithFacebook)),
+                      if (Platform.isIOS) ...[
+                        const SizedBox(width: 20.0),
+                        _socialIconButton('assets/images/apple.png', () => _handleSocialLogin(SocialAuthService.signInWithApple)),
+                      ],
+                    ],
                   ),
-                  const SizedBox(height: 10.0),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48.0,
-                    child: ElevatedButton.icon(
-                      onPressed: _socialLoading ? null : () => _handleSocialLogin(SocialAuthService.signInWithFacebook),
-                      icon: const Icon(Icons.facebook, size: 22.0),
-                      label: const Text('Sign up with Facebook', style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff1877F2),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10.0),
-                  if (Platform.isIOS)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48.0,
-                      child: ElevatedButton.icon(
-                        onPressed: _socialLoading ? null : () => _handleSocialLogin(SocialAuthService.signInWithApple),
-                        icon: const Icon(Icons.apple, size: 22.0),
-                        label: const Text('Sign up with Apple', style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-                        ),
-                      ),
-                    ),
-                  if (Platform.isIOS) const SizedBox(height: 10.0),
                   if (_socialLoading)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),

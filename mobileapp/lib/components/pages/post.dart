@@ -41,6 +41,7 @@ class _PostState extends State<Post> {
   bool _hasMoreComments = true;
   int _commentsPage = 1;
   String _commentsCount = '0';
+  bool _commentsCountInitialized = false;
   final TextEditingController _commentController = TextEditingController();
   bool _postingComment = false;
   final Set<int> _blockedUserIds = {};
@@ -53,8 +54,7 @@ class _PostState extends State<Post> {
     postFuture = fetchpost();
     _checkIfLiked();
     _checkBookmark();
-    _loadBlockedUsers();
-    _loadComments();
+    _loadBlockedThenComments();
     _loadFontSize();
   }
 
@@ -214,6 +214,11 @@ class _PostState extends State<Post> {
       '$posttitle\n$url',
       sharePositionOrigin: box != null ? box.localToGlobal(Offset.zero) & box.size : Rect.zero,
     );
+  }
+
+  Future<void> _loadBlockedThenComments() async {
+    await _loadBlockedUsers();
+    _loadComments();
   }
 
   // Comments methods
@@ -450,7 +455,10 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         setState(() {
           _blockedUserIds.add(userId);
+          final removedCount = _comments.where((c) => c['author_id'] == userId).length;
           _comments.removeWhere((c) => c['author_id'] == userId);
+          final currentCount = int.tryParse(_commentsCount) ?? 0;
+          _commentsCount = '${(currentCount - removedCount).clamp(0, currentCount)}';
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Comments from $authorName are now hidden.')),
@@ -460,6 +468,134 @@ class _PostState extends State<Post> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to block user. Please try again.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _editComment(int commentId, String currentContent) async {
+    final userState = Provider.of<UserState>(context, listen: false);
+    if (!userState.isLoggedIn) return;
+
+    // Strip HTML tags for editing
+    final plainText = currentContent.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    final controller = TextEditingController(text: plainText);
+
+    final newContent = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Comment'),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Edit your comment...',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xfff7770f),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+    if (newContent == null || newContent.isEmpty || newContent == plainText) return;
+
+    try {
+      final response = await http.put(
+        Uri.parse(editCommentApi(commentId)),
+        headers: {
+          'Authorization': 'Bearer ${userState.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'content': newContent}),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        setState(() {
+          final index = _comments.indexWhere((c) => c['id'] == commentId);
+          if (index != -1) {
+            _comments[index]['content'] = '<p>$newContent</p>';
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comment updated.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update comment. Please try again.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteComment(int commentId) async {
+    final userState = Provider.of<UserState>(context, listen: false);
+    if (!userState.isLoggedIn) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Comment'),
+        content: const Text('Are you sure you want to delete this comment?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final response = await http.delete(
+        Uri.parse(deleteCommentApi(commentId)),
+        headers: {'Authorization': 'Bearer ${userState.token}'},
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _comments.removeWhere((c) => c['id'] == commentId);
+          final currentCount = int.tryParse(_commentsCount) ?? 0;
+          _commentsCount = '${(currentCount - 1).clamp(0, currentCount)}';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comment deleted.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete comment. Please try again.')),
         );
       }
     }
@@ -540,7 +676,10 @@ class _PostState extends State<Post> {
                     if (likesCount == '0' && post['likes'] != null && post['likes'] != '0') {
                       likesCount = post['likes'];
                     }
-                    _commentsCount = post['comments_count'] ?? '0';
+                    if (!_commentsCountInitialized) {
+                      _commentsCount = post['comments_count'] ?? '0';
+                      _commentsCountInitialized = true;
+                    }
                     final sources = post['sources'] ?? '';
                     // Record reading history once
                     if (!_historyRecorded) {
@@ -1006,35 +1145,62 @@ class _PostState extends State<Post> {
                                             color: Colors.grey[500],
                                           ),
                                         ),
-                                        if (userState.isLoggedIn && !isOwnComment && commentAuthorId > 0)
+                                        if (userState.isLoggedIn && commentAuthorId > 0)
                                           PopupMenuButton<String>(
                                             icon: Icon(Icons.more_vert, size: 18.0, color: Colors.grey[400]),
                                             padding: EdgeInsets.zero,
                                             constraints: const BoxConstraints(),
-                                            itemBuilder: (_) => [
-                                              const PopupMenuItem(
-                                                value: 'report',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(Icons.flag_outlined, size: 18.0, color: Colors.orange),
-                                                    SizedBox(width: 8.0),
-                                                    Text('Report Comment'),
+                                            itemBuilder: (_) => isOwnComment
+                                                ? [
+                                                    const PopupMenuItem(
+                                                      value: 'edit',
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(Icons.edit_outlined, size: 18.0, color: Colors.orange),
+                                                          SizedBox(width: 8.0),
+                                                          Text('Edit Comment'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    const PopupMenuItem(
+                                                      value: 'delete',
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(Icons.delete_outline, size: 18.0, color: Colors.red),
+                                                          SizedBox(width: 8.0),
+                                                          Text('Delete Comment'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ]
+                                                : [
+                                                    const PopupMenuItem(
+                                                      value: 'report',
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(Icons.flag_outlined, size: 18.0, color: Colors.orange),
+                                                          SizedBox(width: 8.0),
+                                                          Text('Report Comment'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    const PopupMenuItem(
+                                                      value: 'block',
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(Icons.visibility_off, size: 18.0, color: Colors.red),
+                                                          SizedBox(width: 8.0),
+                                                          Text('Hide This User'),
+                                                        ],
+                                                      ),
+                                                    ),
                                                   ],
-                                                ),
-                                              ),
-                                              const PopupMenuItem(
-                                                value: 'block',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(Icons.visibility_off, size: 18.0, color: Colors.red),
-                                                    SizedBox(width: 8.0),
-                                                    Text('Hide This User'),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
                                             onSelected: (value) {
-                                              if (value == 'report') {
+                                              if (value == 'edit') {
+                                                _editComment(comment['id'] as int, comment['content'] ?? '');
+                                              } else if (value == 'delete') {
+                                                _deleteComment(comment['id'] as int);
+                                              } else if (value == 'report') {
                                                 _reportComment(comment['id'] as int);
                                               } else if (value == 'block') {
                                                 _blockUser(commentAuthorId, comment['author_name'] ?? 'this user');
