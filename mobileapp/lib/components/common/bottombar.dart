@@ -27,6 +27,7 @@ class _BottombarState extends State<Bottombar> {
   }
 
   void onItemSelected(int index) {
+    if (index == widget.currentIndex) return;
     setState(() {
       currentindex = index;
     });
@@ -52,8 +53,14 @@ class _BottombarState extends State<Bottombar> {
       default:
         return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => page),
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => page,
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 200),
+      ),
     );
   }
 
